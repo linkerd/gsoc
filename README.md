@@ -6,21 +6,21 @@ This repository contains everything you need to know about the program.
 
 ## Resources
 
-Official website: https://linkerd.io/gsoc
-Linkerd slack (`#gsoc` channel): https://linkerd.slack.com
+* Official website: https://linkerd.io/gsoc
+* Linkerd slack (`#gsoc` channel): https://linkerd.slack.com
 
 ## Request For Comments (RFC)
 
 The RFC process is intended to provide a consistent and controlled path for
-contributions to enter the project, so that all stakeholders
+contributions to enter the Linkerd project, so that all stakeholders
 can be confident about the project direction and maintainability of the codebase.
 
 ### When you need to follow this process
 
 [when you need to follow this process]: #when-you-need-to-follow-this-process
 
-All GSoC students are required to submit a RFC (request for comments) for the
-GSoC project that they are interested in.
+All GSoC students are required to submit a RFC for the GSoC project that they
+are interested in.
 
 ### Before creating an RFC
 
