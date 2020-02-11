@@ -84,23 +84,15 @@ change the design, but make changes as new commits to the pull request, and
 leave a comment on the pull request explaining your changes. Specifically, do
 not squash or rebase commits after they are visible on the pull request.
 
-## The RFC life-cycle
+### The RFC life-cycle
 
 [the rfc life-cycle]: #the-rfc-life-cycle
 
-Once an RFC becomes "active" then authors may implement it and submit the feature
-as a series of pull requests to the Linkerd2 repo. Being "active" is not a rubber
-stamp, and in particular still does not mean the feature will ultimately be
-merged; it does mean that in principle all the major stakeholders have agreed to
-the feature and are amenable to merging it.
-
-Furthermore, the fact that a given RFC has been accepted and is "active" implies
-nothing about what priority is assigned to its implementation, nor does it imply
-anything about whether a maintainer has been assigned the task of implementing
-the feature. While it is not _necessary_ that the author of the RFC also write
-the implementation, it is by far the most effective way to see an RFC through to
-completion: authors should not expect that other project developers will
-take on responsibility for implementing their accepted feature.
+Once an RFC is tagged as "active" then authors may implement it and submit the
+feature as a series of pull requests to the Linkerd2 repo. Being "active" is not
+a rubber stamp, and in particular still does not mean the feature will
+ultimately be merged; it does mean that in principle all the major stakeholders
+have agreed to the feature and are amenable to merging it.
 
 Modifications to "active" RFCs can be done in follow-up pull requests. We strive
 to write each RFC in a manner that it will reflect the final design of the
@@ -113,24 +105,13 @@ minor changes should be submitted as amendments. More substantial changes should
 be new RFCs, with a note added to the original RFC. Exactly what counts as a
 "very minor change" is up to the team to decide.
 
-## Implementing an RFC
+### Implementing an RFC
 
 [implementing an rfc]: #implementing-an-rfc
 
-Some accepted RFCs represent vital features that need to be implemented right
-away. Other accepted RFCs can represent features that can wait until some
-arbitrary developer feels like doing the work. Every accepted RFC has an
-associated issue tracking its implementation in the Linkerd2 repository; thus
-that associated issue can be assigned a priority via the triage process that the
-team uses for all issues in the Linkerd2 repository.
-
-The author of an RFC is not obligated to implement it. Of course, the RFC author
-(like any other developer) is welcome to post an implementation for review after
-the RFC has been accepted.
-
-If you are interested in working on the implementation for an "active" RFC, but
-cannot determine if someone else is already working on it, feel free to ask (e.g.
-by leaving a comment on the associated issue).
+Every accepted RFC has an associated issue tracking its implementation in the
+[Linkerd2](https://github.com/linkerd/linkerd2) repository. The issue will be
+assigned to the RFC author.
 
 ### Help this is all too informal!
 
