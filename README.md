@@ -58,7 +58,7 @@ Linkerd.
 
 1. Fork the [GSoC repository](https://github.com/linkerd/gsoc)
 2. Copy `templates/rfc.md` to
-   `rfc/0000-my-contribution.md` (where "my-contribution" is descriptive.).
+   `rfc/year/project-name/your-github-handle.md`.
 3. Fill in the RFC, starting with `Step 1` - the proposal.
 4. Submit a pull request. As a pull request the RFC will receive feedback from
    the larger community, and the author should be prepared to revise it in
@@ -89,7 +89,8 @@ not squash or rebase commits after they are visible on the pull request.
 [the rfc life-cycle]: #the-rfc-life-cycle
 
 Once an RFC is tagged as "active" then authors may implement it and submit the
-feature as a series of pull requests to the Linkerd2 repo. Being "active" is not
+feature as a series of pull requests to the
+[Linkerd2](https://github.com/linkerd/linkerd2) repo. Being "active" is not
 a rubber stamp, and in particular still does not mean the feature will
 ultimately be merged; it does mean that in principle all the major stakeholders
 have agreed to the feature and are amenable to merging it.
