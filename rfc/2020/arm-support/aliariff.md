@@ -2,7 +2,7 @@
 - Implementation Owner:
 - Start Date: 2020-02-23
 - Target Date:
-- RFC PR:
+- RFC PR: [linkerd/gsoc#1](https://github.com/linkerd/gsoc/pull/1)
 - Linkerd Issue: [linkerd/linkerd2#1165](https://github.com/linkerd/linkerd2/issues/1165), [linkerd/linkerd2#3114](https://github.com/linkerd/linkerd2/issues/3114)
 - Reviewers:
 
