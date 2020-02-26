@@ -9,7 +9,7 @@
 # Summary
 
 [summary]: #summary
-This project proposes a new application that can be used to exercise various features of Linkerd to test for conformance. This includes features that cover non-trivial cases of communication that involve the data plane. This application exercises various topologies and protocols that could surface issues around gRPC streaming, websockets, MySQL and Redis. The project also introduces a new test suite that makes use of this application (as data plane) for conformance validation, i.e, if Linkerd is configured to work correctly with a given k8s cluster. 
+This project proposes a new test suite that shall be used for conformance validation. The new test suite shall be used to validate non-trivial network communication (HTTP, gRPC, websocket) among stateless and stateful workloads in the Linkerd data plane. The correctness of the interaction between the Linkerd control plane and the Kubernetes API Server will also be tested. This shall be done by carrying out extensive e2e tests of linkerd features using a sample distributed application (data plane).
 
 # Problem Statement (Step 1)
 
