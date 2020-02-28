@@ -444,6 +444,6 @@ As a Linkerd user, it is important to check if Linkerd works as expected even ou
 - During runtime, the value for this property is picked up from the unmarshalled object, and a `config.linkerd.io/e2e: conformance` label is appended to the namespace config
 - The tests then hit the k8s API with a label selector to annotate all objects (deployments) under this namespace with the `linkerd.io/inject: enable` annotation to trigger auto-injection.
 - It is crucial for linkerd cmds like stat, route and edge to support label selectors, hence, a patch for this must be made.
-> Note: stat recently started supporting -l label selector flag. A similar approach must be applied to route and edge.
 
+Related - https://github.com/linkerd/linkerd2/pull/4120 , https://github.com/linkerd/linkerd2/pull/4040
 
