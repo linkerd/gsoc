@@ -21,14 +21,16 @@ Linkerd has an extensive check suite that validates a cluster is ready to instal
 [design-proposal]: #design-proposal
 
 ## Interaction with other features
-The e2e conformance tests proposed would be carried out outside the Linkerd CI. These tests would make use of the kubectl and linkerd binaries to interact with the cluster and with various features Linkerd can perform. The testing process can be configured easily using a .yaml definition file (more details explained under “implementation details”).
+The e2e conformance tests proposed would be carried out outside the Linkerd CI. These tests would make use of the kubectl and linkerd binaries to interact with the cluster and with various features Linkerd can perform. The testing process can be configured easily using a .yaml definition file (more details explained under “implementation details”). Such an approach gives the users the flexibility in diagnosing the state of their cluster w.r.t. Linkerd. 
 
 This project also proposes an optional sample distributed application - “MovieChat” that can exercise various features of Linkerd and also surface issues regarding various APIs, protocols and topologies such as streaming, websockets, MySQL and Redis. Currently, Linkerd does not have a sample application that implements these and would benefit from testing for conformance. We initially start off by modifying the existing emojivoto application to have feature flags to enable/disable features such as MySQL, Redis, gRPC, websockets, etc. This is important because emojivoto is heavily used in the getting started process.
 
 ## Implementation Details
-The test suite shall be executed as a job on the cluster using _Sonobuoy_. In the Dockerfile, we define that the following must happen in the container running as a job:
+The test suite shall be executed as a job on the cluster using [Sonobuoy](https://sonobuoy.io/). It is a great tool when it comes to conformance validation, and its [plugin model](https://sonobuoy.io/docs/master/plugins/) can allow us to easily extend functionality beyond k8s conformance validtion. Sonobuoy also saves developers the overhead of configuring the desired objects such as Namespaces, ServieAccounts, ClusterRoleBindings, Jobs, RBAC, etc.
+
+In the Dockerfile, we define that the following must happen in the container running as a job:
 - Setup and install all the binaries/tools required by the testing environment - linkerd, kubectl, mysql, etc.
-- Copy the test configuration file conformance_config.yaml which is responsible for describing how the tests must run (see -   below for implementation details).
+- Copy the test configuration file conformance_config.yaml which is responsible for describing how the tests must run (see below for implementation details).
 - Copy _run.sh_ file that initiates the tests using the go test cmd.
 - Copy the test suite
 - ENTRYPOINT / CMD that executes _./run.sh_
@@ -45,7 +47,7 @@ $ docker push $USER/progress-reporter:v0.1
 # configure plugin
 $ sonobuoy gen plugin \
 --name=l5d-conformance \
---image $USER/l5d-conformance:v0.1 > progress.yaml
+--image $USER/l5d-conformance:v0.1 > l5d-conformance.yaml
 
 # run plugin
 $ sonobuoy run --plugin l5d-conformance.yaml
@@ -56,7 +58,10 @@ mkdir results && tar -xf $outfile -C results
 ```
 
 **Bonus**
-If the users do not want to do any of this, we can provide a default docker image with some predefined test configurations - Eg : _gcr.io/linkerd.io/conformance:v1.0.0_, and also host a plugin definition file that makes use of this image - _https://run.linkerd.io/path/to/plugin.yaml_. The users would then simply have to run :
+
+If the users do not want to do any of this, we can provide a default docker image with some predefined test configurations - Eg : _gcr.io/linkerd.io/conformance:v1.0.0_, and also host a plugin definition file that makes use of this image - _https://run.linkerd.io/path/to/plugin.yaml_. This approach is great if users quickly want to get the conformance validation tool up and running.
+
+The users would then simply have to run :
 ```bash
 $ sonobuoy run --plugin https://run.linkerd.io/path/to/plugin.yaml
 ```
@@ -64,7 +69,9 @@ $ sonobuoy run --plugin https://run.linkerd.io/path/to/plugin.yaml
 Users shall also be allowed to run these tests without having to depend on Sonobuoy. Much like the [Kubernetes conformance validation process](https://github.com/kubernetes/kubernetes/tree/master/cluster/images/conformance) we can provide a yaml configuration file that can be used to run a pod that runs these tests on the cluster. This yaml configuration file is responsible for setting up things like namespace, service account, ClusterRoleBindings, the test runner pod, etc. ([See example](https://github.com/kubernetes/kubernetes/tree/master/cluster/images/conformance))
 
 ### Test Configuration
-The conformance test suite proposed in this project shall be made customizable as per the users’ preferences, which they may mention in a .yaml file. This configuration file shall be unmarshalled into an object during runtime so that tests may read the desired properties from it and can run accordingly. This feature gives users the flexibility of running tests according to their preference. Proposed structure : 
+The conformance test suite proposed in this project shall be made customizable as per the users’ preferences, which they may mention in a .yaml file. Such an approach not only enhances user experience but can also give the testers greater insights on their cluster and Linkerd.
+
+This configuration file shall be unmarshalled into an object during runtime so that tests may read the desired properties from it and can run accordingly. This feature gives users the flexibility of running tests according to their preference. Proposed structure : 
 ```yaml
 installOptions:
     bools: <array>
@@ -188,7 +195,7 @@ Much like the emojivoto application, our MovieChat application shall be configur
 - Install jaeger and check if it is up and running in the tracing namespace.
 - Confirm the status of MovieChat application - should be Running
 - Configure the application to use `oc-collector.tracing:55678` address and check if it happened successfully using kubectl
-Check if Jaeger returns traces by making a `GET` request on the jaeger backend at `/api/traces` endpoint on port 16686. (lookback and service parameters shall be made configurable via CLI flags)
+- Check if Jaeger returns traces by making a `GET` request on the jaeger backend at `/api/traces` endpoint on port 16686. (lookback and service parameters shall be made configurable via CLI flags)
 
 **7. Canary Release**
 - Check and install flagger and wait until a certain duration for the status of the deployment to change to _Running_, after which the test fails.
