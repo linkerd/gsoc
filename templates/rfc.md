@@ -2,7 +2,7 @@
 - Implementation Owner: (fill in with who is doing the implementation)
 - Start Date: (fill me in with today's date, YYYY-MM-DD)
 - Target Date: (is there a target date of completion?)
-- RFC PR: [linkerd/rfc#0000](https://github.com/linkerd/rfc/pull/0000)
+- RFC PR: [linkerd/gsoc#0000](https://github.com/linkerd/gsoc/pull/0000)
 - Linkerd Issue: [linkerd/linkerd2#0000](https://github.com/linkerd/linkerd2/issues/0000)
 - Reviewers: (Who should review the code deliverable? ex.@olix0r)
 
@@ -10,7 +10,7 @@
 
 [summary]: #summary
 
-One paragraph explanation of the proposed contribution.
+One paragraph explanation of the project.
 
 # Problem Statement (Step 1)
 
@@ -30,7 +30,7 @@ Please avoid discussing your proposed solution.
 
 This is the technical portion of the RFC. Explain the design in sufficient detail that:
 
-- Its interaction with other features is clear
+- Its interaction with other features
 - It is reasonably clear how the contribution would be implemented
 - Corner cases are dissected by example
 - Dependencies on libraries, tools, projects or work that isn't yet complete

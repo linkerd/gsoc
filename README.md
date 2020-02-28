@@ -11,16 +11,12 @@ This repository contains everything you need to know about the program.
 
 ## Request For Comments (RFC)
 
+All GSoC students are required to submit a RFC for the GSoC project that they
+are interested in.
+
 The RFC process is intended to provide a consistent and controlled path for
 contributions to enter the Linkerd project, so that all stakeholders
 can be confident about the project direction and maintainability of the codebase.
-
-### When you need to follow this process
-
-[when you need to follow this process]: #when-you-need-to-follow-this-process
-
-All GSoC students are required to submit a RFC for the GSoC project that they
-are interested in.
 
 ### Before creating an RFC
 
@@ -33,18 +29,15 @@ for the unprepared contributor. Laying some groundwork ahead of the RFC can
 make the process smoother.
 
 Although there is no single way to prepare for submitting an RFC, it is
-generally a good idea to pursue feedback from other project developers
-beforehand, to ascertain that the RFC may be desirable; having a consistent
-impact on the project requires concerted effort toward consensus-building.
+generally a good idea to pursue feedback from the GSoC mentors beforehand, to
+ascertain that the RFC may be desirable; having a consistent impact on the
+project requires concerted effort toward consensus-building.
 
 The most common preparations for writing and submitting an RFC include talking
-the idea over on our [Linkerd Slack, #contributors](https://slack.linkerd.io),
-or discussing the topic on our
-[CNCF developer mailing list](https://lists.cncf.io/g/cncf-linkerd-dev). You may
-file issues on this repo for discussion, but these are not actively looked at by
-the teams.
+the idea over on our
+[Linkerd Slack, #gsoc channel](https://slack.linkerd.io).
 
-As a rule of thumb, receiving encouraging feedback from long-standing project
+As a rule of thumb, receiving encouraging feedback from long-standing Linkerd
 developers is a good indication that the RFC is worth pursuing.
 
 ### What the process is
@@ -52,14 +45,15 @@ developers is a good indication that the RFC is worth pursuing.
 [what the process is]: #what-the-process-is
 
 In short, to get a major feature added to Linkerd, one must first get the RFC
-merged into the RFC repository as a markdown file. At that point the RFC is
+merged into this repository as a markdown file. At that point the RFC is
 "active" and may be implemented with the goal of eventual inclusion into
 Linkerd.
 
 1. Fork the [GSoC repository](https://github.com/linkerd/gsoc)
 2. Copy `templates/rfc.md` to
    `rfc/year/project-name/your-github-handle.md`.
-3. Fill in the RFC, starting with `Step 1` - the proposal.
+3. Fill in the RFC, starting with `Step 1` - Problem Statement. This is where
+   you demonstrate your understanding of the problem to be solved.
 4. Submit a pull request. As a pull request the RFC will receive feedback from
    the larger community, and the author should be prepared to revise it in
    response.
@@ -72,11 +66,11 @@ Linkerd.
 7. The team will discuss the RFC pull request, as much as possible in the
    comment thread of the pull request itself. Offline discussion will be
    summarized on the pull request comment thread.
-8. Repeat this process with a follow up pull request that integrates the
-   feedback, and completes `Step 2` - the Design. Put care into the details:
-   RFCs that do not present convincing motivation, demonstrate lack of
-   understanding of the design's impact, or are disingenuous about the drawbacks
-   or alternatives tend to be poorly-received.
+8. When all the feedback are integrated, update your pull request to complete
+   `Step 2` - Design Proposal. Put care into the details: RFCs that do not
+   present convincing motivation, demonstrate lack of understanding of the
+   design's impact, or are disingenuous about the drawbacks or alternatives tend
+   to be poorly-received.
 
 RFCs rarely go through this process unchanged, especially as alternatives and
 drawbacks are shown. You can make edits, big and small, to the RFC to clarify or
@@ -88,7 +82,7 @@ not squash or rebase commits after they are visible on the pull request.
 
 [the rfc life-cycle]: #the-rfc-life-cycle
 
-Once an RFC is tagged as "active" then authors may implement it and submit the
+Once an RFC is tagged as "active" then author may implement it and submit the
 feature as a series of pull requests to the
 [Linkerd2](https://github.com/linkerd/linkerd2) repo. Being "active" is not
 a rubber stamp, and in particular still does not mean the feature will
