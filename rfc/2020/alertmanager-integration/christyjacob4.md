@@ -91,5 +91,6 @@ other software.
 
 [future-possibilities]: #future-possibilities
 
-- Allow users to add Prometheus rules using the **linkerd dashboard** and inject the new rules into the prometheus deployment, similar to how linkerd inject works.
-- Allow users to add Alertmanager receivers using **linkerd dashboard** and inject them.
+- If time permits, work on the identity and RBAC for the dashboard which will allow modifying the Prometheus rules and Alert Manager Configs directly from the **Linkerd Dashboard**.
+- Allow users to add Prometheus rules using the **Linkerd Dashboard** and inject the new rules into the prometheus deployment, similar to how linkerd inject works.
+- Allow users to add Alertmanager receivers using **Linkerd Dashboard** and inject them.
