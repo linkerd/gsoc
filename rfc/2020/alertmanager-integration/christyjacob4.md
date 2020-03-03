@@ -1,22 +1,20 @@
 - Contribution Name: `Alert Manager Integration`
 - Implementation Owner: @christyjacob4
 - Start Date: 2020-03-03
-- Target Date: (is there a target date of completion?)
+- Target Date: 
 - RFC PR: [linkerd/gsoc#0000](https://github.com/linkerd/gsoc/pull/0000)
-- Linkerd Issue: [linkerd/linkerd2#0000](https://github.com/linkerd/linkerd2/issues/0000)
-- Reviewers: (Who should review the code deliverable? ex.@olix0r)
+- Linkerd Issue: [linkerd/linkerd2#1726](https://github.com/linkerd/linkerd2/issues/1726)
+- Reviewers: 
 
 # Summary
 
 [summary]: #summary
 
-Linkerd uses Prometheus for collecting metrics from various endpoints. Out of the box, Prometheus is an opensource monitoring solution that gathers time series based numerical data. Your services need to expose an endpoint (/metrics) from which Prometheus can scrape metrics. The prometheus monitoring suite comes with tools that help enhance its capabilities like Grafana and AlertManager.
-
-The current implementation of the Control Plane makes use of Prometheus for scraping endpoints and aggregating metrics.
+Linkerd uses Prometheus for collecting metrics from various endpoints. Out of the box, Prometheus is an opensource monitoring solution that gathers time series based numerical data. Your services need to expose an endpoint (/metrics) from which Prometheus can scrape metrics. The prometheus monitoring suite comes with tools that help enhance its capabilities like Grafana and AlertManager. The current implementation of the Control Plane makes use of Prometheus for scraping endpoints and aggregating metrics.
 
 The primary goal of this project is to integrate the Alertmanager into the current Control Plane so that Prometheus can Provide out of the box alerts to the preferred channels.
-
-AlertManager can be used for silencing alerts, routing and sending alerts to preferred channels like slack, emails, pagerduty etc.
+AlertManager can be used for grouping alerts, silencing alerts, routing and sending alerts to preferred channels like slack, emails, pagerduty etc. 
+This will allow users and teams to keep track of critical events that occur on their deployments with ease. 
 
 # Problem Statement (Step 1)
 
@@ -32,13 +30,14 @@ bin/linkerd install --alertmanager | kubectl apply -f -
 
 - The optional **Alertmanager** installation will come with some default alerts
   which users can configure to appropriate receivers like
-  pagerduty, email, slack and users will be able to customise the receivers by using a ```--receivers``` flag in the cli.
+  pagerduty, email, slack and users will be able to customise the receivers by using a `--receivers` flag in the cli.
 
 ```sh
 bin/linkerd install --alertmanager --receivers alert_manager_receivers.yml | kubectl apply -f -
 ```
+A POC for this has been done in [linkerd/linkerd2#1726](https://github.com/linkerd/linkerd2/pull/4124)
 
-- Users will also be able to specify custom rules along with the installation using a ```--prometheusRules ``` flag in the cli.
+- Users will also be able to specify custom rules along with the installation using a `--prometheusRules ` flag in the cli.
 
 ```sh
 bin/linkerd install --alertmanager --prometheusRules prometheus_rules.yml | kubectl apply -f -
