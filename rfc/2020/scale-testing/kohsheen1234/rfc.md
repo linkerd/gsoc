@@ -34,19 +34,6 @@ This conrtibution aims to completely automate the scale tests, so that scale-tes
 [design-proposal]: #design-proposal
 
 
-**Note**: We suggest waiting to do this work, until Step 1 of the process is complete and you have has received feedback.
-
-This is the technical portion of the RFC. Explain the design in sufficient detail that:
-
-- Its interaction with other features is clear
-- It is reasonably clear how the contribution would be implemented
-- Corner cases are dissected by example
-- Dependencies on libraries, tools, projects or work that isn't yet complete
-- Use Cases
-- Goals
-- Non-Goals
-- Deliverables
-
 # Prior art
 
 [prior-art]: #prior-art
@@ -60,10 +47,8 @@ This is the technical portion of the RFC. Explain the design in sufficient detai
 
 [unresolved-questions]: #unresolved-questions
 
-- What parts of the design do you expect to resolve through the RFC process before this gets merged?
+
 
 # Future possibilities
 
 [future-possibilities]: #future-possibilities
-
-This is also a good place to "dump ideas", if they are out of scope for the RFC you are writing but otherwise related.
