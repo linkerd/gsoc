@@ -41,6 +41,7 @@ This conrtibution aims to completely automate the scale tests, so that scale-tes
 - Scale and Performance testing is included in other service mesh. 
   - For instance, let's consider Istio https://istio.io/docs/ops/deployment/performance-and-scalability/. 
   - Github link - https://github.com/istio/tools/tree/release-1.4/perf
+- Current scale-test of linkerd - https://github.com/linkerd/linkerd2/blob/master/bin/test-scale 
 
 
 # Unresolved questions
