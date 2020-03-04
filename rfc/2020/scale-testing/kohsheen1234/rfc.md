@@ -6,7 +6,6 @@
 - Linkerd Issue: [linkerd/linkerd2#3895](https://github.com/linkerd/linkerd2/issues/3895)
 - Reviewers: 
 
-
 [summary]: #summary
 
 # Summary
@@ -27,7 +26,6 @@ This conrtibution aims to completely automate the scale tests, so that scale-tes
     - Linkerd stat responsiveness
     - Prometheus cpu/memory usage
   - Report on resource usage, Linkerd performance and potential errors encountered.
-
 
 # Design proposal (Step 2)
 
