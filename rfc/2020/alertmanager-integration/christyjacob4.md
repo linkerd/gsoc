@@ -10,9 +10,9 @@
 
 [summary]: #summary
 
-Linkerd uses Prometheus for collecting metrics from various endpoints. Out of the box, Prometheus is an opensource monitoring solution that gathers time series based numerical data. Your services need to expose an endpoint (/metrics) from which Prometheus can scrape metrics. The prometheus monitoring suite comes with tools that help enhance its capabilities like Grafana and AlertManager. The current implementation of the Control Plane makes use of Prometheus for scraping endpoints and aggregating metrics.
+Linkerd uses Prometheus for collecting metrics from various endpoints. Out of the box, Prometheus is an open source monitoring solution that gathers time series based numerical data. Your services need to expose an endpoint (/metrics) from which Prometheus can scrape metrics. The Prometheus monitoring suite comes with tools that help enhance its capabilities like Grafana and AlertManager. The current implementation of the Control Plane makes use of Prometheus for scraping endpoints and aggregating metrics.
 
-The primary goal of this project is to integrate the Alertmanager into the current Control Plane so that Prometheus can Provide out of the box alerts to the preferred channels.
+The primary goal of this project is to integrate the Alertmanager into the current Control Plane so that Prometheus can provide out of the box alerts to the preferred channels.
 AlertManager can be used for grouping alerts, silencing alerts, routing and sending alerts to preferred channels like slack, emails, pagerduty etc. 
 This will allow users and teams to keep track of critical events that occur on their deployments with ease. 
 
@@ -25,7 +25,7 @@ This will allow users and teams to keep track of critical events that occur on t
 * Once this RFC is implemented, users will have the option to install **Alertmanager** in the control plane using the following option
 
 ```sh
-bin/linkerd install --alertmanager | kubectl apply -f -
+linkerd install --alertmanager | kubectl apply -f -
 ```
 
 - The optional **Alertmanager** installation will come with some default alerts
@@ -33,14 +33,14 @@ bin/linkerd install --alertmanager | kubectl apply -f -
   pagerduty, email, slack and users will be able to customise the receivers by using a `--receivers` flag in the cli.
 
 ```sh
-bin/linkerd install --alertmanager --receivers alert_manager_receivers.yml | kubectl apply -f -
+linkerd install --alertmanager --receivers alert_manager_receivers.yml | kubectl apply -f -
 ```
 A POC for this has been done in [linkerd/linkerd2#1726](https://github.com/linkerd/linkerd2/pull/4124)
 
 - Users will also be able to specify custom rules along with the installation using a `--prometheusRules ` flag in the cli.
 
 ```sh
-bin/linkerd install --alertmanager --prometheusRules prometheus_rules.yml | kubectl apply -f -
+linkerd install --alertmanager --prometheusRules prometheus_rules.yml | kubectl apply -f -
 ```
 
 - Integration with Service Profiles will allow users to configure rules and alerts for per route metrics providing extremely fine grain alerting mechanisms for their apps.
