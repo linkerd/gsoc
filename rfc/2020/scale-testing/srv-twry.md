@@ -1,9 +1,9 @@
 
 - Contribution Name: `Scale Testing`
-- Implementation Owner: Saurav Tiwary
+- Implementation Owner: [@srv-twry](https://github.com/srv-twry)
 - Start Date: 2020-03-09
 - Target Date: 
-- RFC PR: [linkerd/gsoc#0000](https://github.com/linkerd/gsoc/pull/0000)
+- RFC PR: [linkerd/gsoc#0006](https://github.com/linkerd/gsoc/pull/6)
 - Linkerd Issue: [linkerd/linkerd2#3895](https://github.com/linkerd/linkerd2/issues/3895)
 - Reviewers: 
 
