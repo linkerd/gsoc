@@ -22,7 +22,7 @@ This contribution aims to completely automate the scale test framework, to ensur
     - Success rate
     - Latency and throughput
     - Dashboard load times
-    - `inkerd stat` responsiveness
+    - `linkerd stat` responsiveness
     - Prometheus cpu/memory usage
   - Report on resource usage, Linkerd performance and potential errors encountered.
 
