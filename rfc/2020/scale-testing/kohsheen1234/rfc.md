@@ -9,7 +9,7 @@
 [summary]: #summary
 
 # Summary
-This conrtibution aims to completely automate the scale test framework, to ensure the scale tests are repeatable by the community. Automating scale tests serve to provide visibility into the proxy's performance and reveal any performance degration.
+This contribution aims to completely automate the scale test framework, to ensure the scale tests are repeatable by the community. Automating scale tests serve to provide visibility into the proxy's performance and reveal any performance degration.
 # Problem Statement (Step 1)
 
 [problem-statement]: #problem-statement
@@ -22,7 +22,7 @@ This conrtibution aims to completely automate the scale test framework, to ensur
     - Success rate
     - Latency and throughput
     - Dashboard load times
-    - Add backticks to linkerd stat 
+    - `inkerd stat` responsiveness
     - Prometheus cpu/memory usage
   - Report on resource usage, Linkerd performance and potential errors encountered.
 
