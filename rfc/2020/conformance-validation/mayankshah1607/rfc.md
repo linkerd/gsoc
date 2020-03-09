@@ -71,7 +71,7 @@ Once the test suite is complete (success / failure ) all resources created for t
 
 - Users shall also be allowed to run these tests without having to depend on Sonobuoy. Much like the [Kubernetes conformance validation process](https://github.com/kubernetes/kubernetes/tree/master/cluster/images/conformance) we can provide a YAML configuration file that can be used to run a pod that runs these tests on the cluster. This YAML configuration file is responsible for setting up things like namespace, service account, ClusterRoleBindings, the test runner pod, etc. ([See example](https://github.com/kubernetes/kubernetes/tree/master/cluster/images/conformance))
 
-- If the users wish to proceed with Sonobuoy but want an easier way to do things, we can provide a default Docker image - Eg : _gcr.io/linkerd.io/conformance:v1.0.0_ . This image shall contain a `conformance_config.yaml` file that defines some default configurations for the tests. Additionally, we may also provide a Sonobuoy plugin file (as seen above in the "configure plugin" step) that uses the above mentioned Docker image, for e.g - _https://run.linkerd.io/path/to/plugin.yaml_.
+- If the users wish to proceed with Sonobuoy but want an easier way to do things, we can provide a default Docker image - Eg : _gcr.io/linkerd.io/conformance:v1.0.0_ . Additionally, we may also provide a Sonobuoy plugin file (as seen above in the "configure plugin" step) that uses the above mentioned Docker image, for e.g - _https://run.linkerd.io/path/to/plugin.yaml_.
 
 The users would then simply have to run :
 ```bash
@@ -90,7 +90,9 @@ This configuration file shall be unmarshalled (using the `go-yaml` library) into
 
 > Note: The above mentioned `run.sh` file does not rely on this configuration file. The script is only responsible for issuing the `go test` cmd. This configuration file is meant for the go code to initialize a struct that the tests can read from.
  
-This feature gives users the flexibility of running tests according to their preferences. Proposed structure : 
+This feature gives users the flexibility of running tests according to their preferences. If this file is absent, the test tool shall be made to automatically use default values for the tests. For E.g, assume a struct `TestOptions` that holds the values from this file. We may have a method that reads values from this config file and returns an instance of `TestOptions` for the tests to read from. If the file is absent, this method can return an instance of `TestOptions` with some defaults.
+
+Below is the proposed structure for this configuration file: 
 ```yaml
 installOptions:
     bools: <array>
