@@ -165,7 +165,7 @@ testOptions:
 
 ```
 
-Alternatively, we may also configure the tests imperatively. The `./run.sh` can be made to accept command line arguements. But this may not have a positive impact on the user experience due to the large number of arguements that may exist. Further, having a YAML configuration file for the same gives the advantage of storing these values that may be reused later on. 
+Alternatively, we may also configure the tests imperatively. The `./run.sh` can be made to accept command line arguments. But this may not have a positive impact on the user experience due to the large number of arguments that may exist. Further, having a YAML configuration file for the same gives the advantage of storing these values that may be reused later on. 
 
 ### Testing Methodologies for various features
 The conformance test suite is intended to be run against an installation of Linkerd. Passing this test suite would give the user the assurance that a given configuration of Linkerd works (as expected) with a given version of Kubernetes and its cluster configuration. Users may easily configure install options and test preferences using the test configuration file provided.
@@ -174,7 +174,7 @@ The tests shall be written using Go. This is primarily due how easy it is to man
 
 This section includes write ups regarding testing methodologies for some primary features:
 
-**1. Auomatic Proxy Injection**
+**1. Automatic Proxy Injection**
 
 Proxy injection process works by adding a `linkerd.io/inject: enabled` annotation to pod template / namespace. This triggers an admission webhook that injects the `linkerd-proxy` container to the targeted deployments. This process shall be tested in 7 steps:
 - Check if `inject` command (with and without `--manual` flag) outputs the desired configuration with the appended annotation. We shall provide an injected YAML file of the deployments which can be compared against the YAML blob output of inject.
@@ -217,6 +217,7 @@ This test will work by issuing the `linkerd tap` cmd on various resources of the
 - Validate the returned output by counting instances of desired route substrings using `strings.Count`
 
 **6. Distributed Tracing**
+
 Much like the emojivoto application, our MovieChat application shall be configured with the OpenCensus Agent library to support tracing information in the requests. The following checks must be carried out:
 - Install the collector and check if it is up and running in the tracing namespace.
 - Install Jaeger and check if it is up and running in the tracing namespace.
@@ -349,7 +350,7 @@ This cmd would return a response from the websocket server from the /socket endp
 - The emojivoto application shall be modified to have persistent storage. The `voting` deployment may be configured to work with MySQL and Redis (for cache). 
 - The `vote-bot` deployment may send constant traffic to `voting` which can be setup to simulate :
   - **cache hit** : If `voting` finds an emoji in Redis which has already been voted for earlier
-  - **cache miss** : If `voting` cannot find the emoji in Redis, in which case, it fetches the record from MySQL and performs necessary updates.
+  - **cache miss** : If `voting` cannot find the emoji in Redis, it fetches the record from MySQL and performs necessary updates.
 - Optionally, set in _conformance_config.yaml_ if the Redis and MySQL instances must be injected. If so, test the traffic between these instances using `linkerd stat`, similar to how gRPC traffic was tested.
 
 ### MovieChat App
@@ -377,7 +378,7 @@ The k8s configuration files shall be managed using kustomize. Users shall be all
 
 ## Corner Cases
 
-It is possible to have prior knowledge regarding which use cases may need to be configured differently depending on the environment. For E.g, tap requires extra RBAC configurations on GKE. Instead of having the corresponding tests for tap failing, users may be allowed to explicitly mention the environment these tests shall run on. The testing tool may spit out a warning, providing a link to the docs which provide instructions on how to setup GKE for Linkerd. This would have a positive impact on UX.
+It is possible to have prior knowledge regarding which use cases may need to be configured differently depending on the environment. For E.g, tap requires extra RBAC configurations on GKE. Instead of having the corresponding tests for tap failing, users may be allowed to explicitly mention the environment these tests shall run on. The testing tool may show a warning, providing a link to the docs which provide instructions on how to setup GKE for Linkerd. This would have a positive impact on UX.
 
 Similarly, any known corner cases related to the infrastructure of the cluster can be documented.
   
@@ -431,7 +432,7 @@ It is a non-goal for this project to provide an application that is expected to 
 ### Must have (shall be completed by end of GSoC):
 - An e2e test suite that can perform conformance validation for the following features:
     1. Automatic proxy injection
-    2. Linkerd tap, stat, routes, edges cmd
+    2. `linkerd tap`, `stat`, `routes`, `edges` cmd
     3. Verifying if `tap` extenstion API server is functional
     4. Retries and Timeouts
     5. Verifying if Data Plane proxies are healthy
