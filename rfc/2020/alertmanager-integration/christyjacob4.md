@@ -22,15 +22,15 @@ This will allow users and teams to keep track of critical events that occur on t
 
 - By default, the Linkerd Control Plane doesn't have an alerting mechanism. Prometheus gathers all the metrics which can be visualised through Grafana, but in order to send these alerts to channels, we need to integrate Alertmanager with Prometheus as part of the control plane.
 
-* Once this RFC is implemented, users will have the option to install **Alertmanager** in the control plane using a flag in in `linkerd install`
+* Once this RFC is implemented, users will have the option to install **Alertmanager** in the control plane using the `addon-config` flag in `linkerd install`
 
 
 - The optional **Alertmanager** installation will come with some default alerts
   which users can configure to appropriate channels like slack, email, pagerduty, wechat etc.
 
-- Users will also be able to specify custom rules for Prometheus using a cli option.
+- Users will also be able to specify custom rules for Prometheus as part of the configuration for `--addon-config` in `config.yaml`.
 
-- Integration with Service Profiles will allow users to configure rules and alerts for per route metrics providing extremely fine grain alerting mechanisms for their apps.
+- Integration with Service Profiles will allow users to define rules and alerts for per route metrics providing extremely fine grain alerting mechanisms for their apps.
 
 A POC for this has been done in [linkerd/linkerd2#1726](https://github.com/linkerd/linkerd2/pull/4124)
 
@@ -43,10 +43,12 @@ The Integration of Alertmanager with the Existing Control Plane is a multi step 
 The Linkerd install command is currently used to generate a helm chart based on various flags and options that are passed to it. The helm chart is then applied using `kubectl apply` .
 With the recent addition of [**Tracing**](https://github.com/linkerd/linkerd2/pull/3955) to linkerd installation as an add-on, we have a framework to add more modules as part of the Control Plane installation.
 
-The plan is to have an optional flag `--alertmanager` along with `linkerd install`, that would allow the user to install linkerd with Alertmanager configured out-of-the-box, as an addon. So the complete command would look like this 
+The plan is to pass a configuration file `config.yaml` in the `--addon-config` flag along with `linkerd install`, that would allow the user to install Linkerd with Alertmanager configured out-of-the-box, as an addon. So the complete command would look like this 
+
 ```sh
-linkerd install --alertmanager | kubectl apply -f -
+linkerd install --addon-config config.yaml | kubectl apply -f -
 ```
+
 This will simply enable Alertmanager with a default, publicly available [**webhook receiver**](#webhook-configuration) and configure Prometheus with a few default rules.  
 
 > This will enable the user to 
@@ -54,7 +56,7 @@ This will simply enable Alertmanager with a default, publicly available [**webho
 >  * Check if Alertmanager is able to receive alerts from Prometheus.
 >  * Validate if Alertmanager is able to forward alerts to receivers.
 
-As an additional configuration item, a [`config.yaml`](#installation-yaml) can be passed to the `--alertmanager` flag. This would contain all the configurations required to setup a full feldged Alertmanager install. The documentation for the `config.yaml` file is given [**here**](#installation-yaml).
+Additional configuration for a more specific Alertmanager install can be specified in the [`config.yaml`](#installation-yaml) file. This would contain all the configurations required to setup a full feldged Alertmanager install like enabling the default webhook flag, path to Prometheus files, path to Alertmanager Receivers file etc. The documentation for the `config.yaml` file is given [**here**](#installation-yaml).
 
 For the Alertmanager to function properly, it should have the correct iptables and roles, this is done by the proxy injector and RBAC settings. More information about the implementation of the Alertmanager Helm chart can be found in this [**section**](#alertmanager-helm-chart). 
 
@@ -93,52 +95,59 @@ The response contains a **uuid**, which can be used in conjunction with the base
 }
 ```
 
-An Exmaple of alerts that were triggered from Prometheus (as part of my POC) can be found here [here](https://webhook.site/#!/c21467b9-7ce4-4389-998b-8d91578433f3/ff66d8b1-c206-49a7-b5f8-b44af28a022f/1)
+An Exmaple of alerts that were triggered from Prometheus (as part of my POC) can be found [here](https://webhook.site/#!/c21467b9-7ce4-4389-998b-8d91578433f3/ff66d8b1-c206-49a7-b5f8-b44af28a022f/1)
 
-> Privacy can be a concern here as some users may not want their private alerts to go to a public webhook. The default behaviour can be easily overridden using the `config.yaml` file passed to the `--alertmanager` flag 
+> Privacy can be a concern here as some users may not want their private alerts to go to a public webhook. The default behaviour can be easily overridden using the `config.yaml` file passed to the `--addon-config` flag as shown below
+
+```yaml
+publicWebhook: false 
+...
+Additional Configuration Items.
+...
+```
 
 ---
 - ## Installation YAML
 
-The user can pass a yaml file along with the `--alertmanager` flag to override the default settings we provide.
+The user can pass a yaml file along with the `--addon-config` flag to override the default settings we provide.
 ```sh
-linkerd install --alertmanager config.yaml | kubectl apply -f -
+linkerd install --addon-config config.yaml | kubectl apply -f -
 ```
 
 The yaml file will be unmarshalled during installation and will overwrite the default values in `values.yaml`
 
-The template of the yaml file can be defined as follows 
+The template of the `yaml` file can be defined as follows 
 
 ```yaml
 # Flag to enable/disable sending alerts to Webhook.site
-publicWebhook: false [default = true]
+publicWebhook: true [ default = false ]
 
-# This section contains configuration items specific to Alertmanager component
+# This section contains configuration items specific to Alertmanager addon component
 alertmanager:
 
   # Name of the Alertmanager component, re-used across helm chats 
-  name: alertmanager
+  name: alertmanager [ default = alertmanager ]
 
   # Flag to determine if Alertmanager should be enabled/disabled.
-  enabled: true [default = false]
+  enabled: true [ default = false ]
 
   # Image name of a stable release of Alertmanager, that works best with the current version of Prometheus
-  image: prom/alertmanager:v0.19.0
+  image: prom/alertmanager:v0.19.0 [ default = prom/alertmanager:v0.19.0 ]
 
   # Path to the file containing the configMap for Alertmanager Deployment
-  config: path/to/config/file.yaml 
+  config: path/to/config/file.yaml [ default = "" ]
 
 # This section contains configuration items specific to Prometheus component
 prometheus:
 
   # Path to file containing Prometheus Rules
-  rules: path/to/rules/file.yaml
+  rules: path/to/rules/file.yaml [ default = "" ]
 
   # Path to the swagger spec file that will be used to generate a service profile and provide per route metrics
-  swaggerSpecPath: path/to/swagger/spec
+  swaggerSpecPath: path/to/swagger/spec [ default = "" ]
 
   # Path to the protobuf spec file that will be used to generate a service profile and provide per route metrics
-  protobufSpecPath: path/to/protobuf/spec
+  protobufSpecPath: path/to/protobuf/spec [ default = "" ]
 ```
 
 
@@ -148,7 +157,7 @@ The Alertmanager installation will come out of the box with some Prometheus rule
 
 The rule file that is mentioned in `config.yaml` will need to be read, unmarshalled and then embedded in the Prometheus ConfigMap. 
 
-We need to inform Prometheus about the existence of a Alertmanager service and this is done by adding an alerting mechanism in the Prometheus ConfigMap in the `prometheus.yaml` file 
+We need to inform Prometheus about the existence of a Alertmanager service and this is done by adding an alerting mechanism in the Prometheus ConfigMap in `charts/linkerd2/templates/prometheus.yaml` file 
 
 ```yaml
 alerting:
@@ -368,6 +377,7 @@ metadata:
 - ## Service Profile Integration 
 
 Service Profiles is an extremely useful Linkerd Feature that enables a developer to get metrics on a per route basis. A Service profile can be generated by Linkerd using the `linkerd profile` command and passed onto `kubectl apply`. 
+
 `linkerd profile` can obtain route information in 4 different ways:
 - Swagger
 - Protobuf
@@ -392,7 +402,7 @@ The information from the Service Profile will allow us to define per route metri
 As a starting point, this can easily be tested using Linkerd's own test apps [Emojivoto](https://github.com/BuoyantIO/emojivoto) and [BooksApp](https://github.com/BuoyantIO/booksapp). 
 
 # Deliverables
-- Ability to [install](#providing-an-option-to-include-AlertManager-in-the-installation) Alertmanager as part of the Control plane. 
+- Ability to [install](#providing-an-option-to-include-AlertManager-in-the-installation) Alertmanager as an addon as part of the Control plane. 
 - [Default](#default-rules) out-of-the-box alerts. 
 - Simple configuration of [alert channels](#alertmanager-helm-chart) (slack, email).
 - [Service profile Integration](#Service-Profile-Integration) to provide per route alerts.
