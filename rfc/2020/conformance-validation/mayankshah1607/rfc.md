@@ -80,8 +80,6 @@ $ sonobuoy run --plugin https://run.linkerd.io/path/to/plugin.yaml
 
 This approach is great if users quickly want to get the conformance validation tool up and running - they're no longer required to setup a Docker image locally (see "setup docker registry" step) or deal with configuring a customized plugin (see "configure plugin" step)
 
-- This project also proposes an optional sample distributed application - “MovieChat”that can exercise various features of Linkerd and also surface issues regarding various APIs, protocols and topologies such as streaming, websockets, MySQL and Redis. Currently, Linkerd does not have a sample application that implements these and would benefit from testing for conformance. 
-
 ### Test Configuration
 The conformance test suite proposed in this project shall be made customizable as per the users’ preferences, which they may mention in a YAML file. Such an approach not only enhances user experience but can also give the testers greater insights on their cluster and Linkerd.
 
@@ -353,28 +351,6 @@ This cmd would return a response from the websocket server from the /socket endp
   - **cache miss** : If `voting` cannot find the emoji in Redis, it fetches the record from MySQL and performs necessary updates.
 - Optionally, set in _conformance_config.yaml_ if the Redis and MySQL instances must be injected. If so, test the traffic between these instances using `linkerd stat`, similar to how gRPC traffic was tested.
 
-### MovieChat App
-The plan is to initially start off by modifying the emojivoto app to have feature flags that enable/disable features required from a conformance validation perspective. As we develop these tests, new features must be added to emojivoto as required. 
-
-If time permits, the we shall develop a sample application MovieChat as proposed below: 
-
-<img src="https://i.imgur.com/3GBKOQC.jpg"/>
-
-The application mainly consists of 6 different components / microservices:
-
-1. Web - responsible for providing a web based UI for users to interact with, a HTTP Server and a gRPC Client . The web UI client allows the users to:
-    - Send a Movie ID request to the gRPC server and get back a MovieName Response. [Unary gRPC request]
-    - Send a request to the gRPC server to get a stream of all movie names stored in the database. [Server Streaming]
-    - Send a stream of MovieID and MovieName and store them in the database. [Client Streaming]
-    - Send a stream of MovieIDs and receive a stream of MovieName [bi-directional streaming]
-    - Chat with other users about their favourite movies! [Redis, websockets]
-2. Movie API - a gRPC server responsible for querying the MySQL database to store and retrieve movie data. 
-3. Chat server - handles socket connections to update chat UI in real-time.
-4. Redis - Saves the chat history so that the chat server can render it on the web UI. This is refreshed at regular intervals.
-5. MySQL - responsible for storing Movie related data.
-6. Traffic generator - responsible for interacting with the web to simulate various features.
-
-The k8s configuration files shall be managed using kustomize. Users shall be allowed to fire up this application via docker-compose as well.
 
 ## Corner Cases
 
