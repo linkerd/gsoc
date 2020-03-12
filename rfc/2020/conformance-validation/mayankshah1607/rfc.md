@@ -214,45 +214,15 @@ This test will work by issuing the `linkerd tap` cmd on various resources of the
 - Issue `linkerd routes` cmd
 - Validate the returned output by counting instances of desired route substrings using `strings.Count`
 
-**6. Distributed Tracing**
+**6. Distributed Tracing (optional)**
 
-Much like the emojivoto application, our MovieChat application shall be configured with the OpenCensus Agent library to support tracing information in the requests. The following checks must be carried out:
-- Install the collector and check if it is up and running in the tracing namespace.
-- Install Jaeger and check if it is up and running in the tracing namespace.
-- Confirm the status of MovieChat application - should be Running
-- Configure the application to use `oc-collector.tracing:55678` address and check if it happened successfully using kubectl
-- Check if Jaeger returns traces by making a `GET` request on the jaeger backend at `/api/traces` endpoint on port 16686. (lookback and service parameters shall be made configurable via CLI flags)
+Currently there exist some integration tests for _Distributed tracing_. Applications meshed with Linkerd can be easily tested for this by making a `GET` request on the Jaeger backend at `/api/traces` endpoint on port 16686. (lookback and service parameters shall be made configurable via CLI flags)
 
-**7. Canary Release**
-- Check and install flagger and wait until a certain duration for the status of the deployment to change to _Running_, after which the test fails.
-- Check if the application is up and _Running_. We shall be making use of the web component to test Canary release.
-- Configure and deploy a release. Example:
-```yaml
-apiVersion: flagger.app/v1alpha3
-kind: Canary
-metadata:
-  name: web
-  namespace: movie
-spec:
-  targetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: web
-  service:
-    port: 9898
-  canaryAnalysis:
-    interval: 10s
-    threshold: 5
-    stepWeight: 10
-    metrics:
-    - name: request-success-rate
-      threshold: 99
-      interval: 1m
-```
-- Check status of canary/web to ensure it is Initialized
-- Trigger an update by changing the image of deployment/web
-- Wait until status of canary/web is Succeeded
-- Verify metrics by issuing stat cmd
+
+**7. Canary Release (optional)**
+
+Once a Canary Release is configured, an updated may be triggered. The metrics from the `stat` cmd may be verified to ensure that this feature is configured correctly.
+
 
 **8. Ingress**
 
@@ -364,7 +334,7 @@ Similarly, any known corner cases related to the infrastructure of the cluster c
 
 **External dependencies (We use these tools as a wrapper for our tests so users may interact with it):**
 - Docker
-- Sonobuoy (check Unresolved questions)
+- Sonobuoy
 
 **Internal dependencies (tools required inside the container environment):**
 - Kubectl
@@ -381,15 +351,6 @@ Writing the tests using golang seems a great fit for our use cases for 3 reasons
 - Testing frameworks like ginkgo make it easier to bootstrap, organize and manage test suites semantically - this would improve contributor experience by preserving readability and maintainability of the test suite. Ginkgo also allows us to use custom reporters that may help us store the results of these tests.
 Nevertheless, sticking to the standard testing framework also gives us great control over the flow and management of output / assertion. 
 
-**Libraries/Modules required for MovieChat application:**
-
-All microservices (except Web UI, which will be written using JavaScript/React) shall be written using golang. The following libraries may be required:
-- [grpc/grpc-go](https://github.com/grpc/grpc-go)
-- [net/http](https://golang.org/pkg/net/http/)
-- [googollee/go-socket](https://github.com/googollee/go-socket.io)
-- [go-redis/redis](https://github.com/go-redis/redis)
-- [go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)
-- [go-yaml/yaml](https://github.com/go-yaml/yaml)
 
 ## Use Cases
 
