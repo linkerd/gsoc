@@ -476,9 +476,9 @@ I will also be writing a blog post every fortnight to share things I’ve learnt
 | `June 29th -  July 6th` | Extensive Testing of all the aforementioned functionality <br> Integration Test cases for Alertmanager in  High Availability mode <br> Blog Post #5 |
 | `July 6th -  July 13th` |  Generate Service Profiles for apps with swagger spec, record their per-route metrics and define default Prometheus rules for them  |
 | | *Phase #2 Evaluation Starts `( July 13th )`* |
-| `July 20th -  July 27th` | Generate Service Profiles for apps with protobuf spec, record their per-route metrics and define default Prometheus rules for them <br> Blog Post #6 |
-| `July 13th -  July 20th` |  Auto generate Service Profiles for apps without swagger spec or protobuf spec and record their per-route metrics and define default Prometheus rules for them|
-| `July 27th -  August 3rd` | Service Profile Integration related action items  <br> Blog Post #7 |
+| `July 13th -  July 20th` | Generate Service Profiles for apps with protobuf spec, record their per-route metrics and define default Prometheus rules for them <br> Blog Post #6 |
+| `July 20th -  July 27th` | Auto generate Service Profiles for apps without swagger spec or protobuf spec and record their per-route metrics and define default Prometheus rules for them |
+| `July 27th -  August 3rd` | Other Service Profile integration related action items  <br> Blog Post #7 |
 | `August 3rd -  August 10th` | Integration Tests for Service Profile Integration <br> Buffer Time for any action items that may not have been completed |
 | | *Final Evaluation Starts `( August 10th )`* |
 | `August 10th -  August 17th` |   Discuss changes for allowing write access from Linkerd Dashboard <br> Design UI components to support Add/Modify/Delete Prometheus Rules and Alertmanager receivers <br> Blog Post #8 |
