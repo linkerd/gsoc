@@ -186,7 +186,9 @@ Alternatively, as users may want to test for conformance on their own sample app
 - Wait for the pods to come to a _Running_ state for a certain duration, after which the test shall fail.
 - Ensure that the pods no longer have the `linkerd-init` and `linkerd-proxy` containers.
 
-**2. linkerd tap cmd**
+**2. Essential linkerd commands**
+
+**linkerd tap cmd**
 
 This test will work by issuing the `linkerd tap` cmd on various resources of the sample application. The output returned shall be checked for any errors. For e.g - GKE may require extra RBAC configurations and permissions. Tap shall be tested by issuing a tap command using the `-o json` flag and performing checks on the obtained JSON :
 - Check for gRPC status codes
@@ -194,7 +196,7 @@ This test will work by issuing the `linkerd tap` cmd on various resources of the
 - Check for tls settings
 - Check httpStatus
 
-**3. linkerd stat cmd**
+**linkerd stat**
 
 - Check if prometheus pod(s) is/are available
 - Check if controller pods are up and running
@@ -202,29 +204,19 @@ This test will work by issuing the `linkerd tap` cmd on various resources of the
 - Issue stat cmd and validate output by checking for success rate and various latencies 
 > Note: This test may have to be put on hold due to https://github.com/linkerd/linkerd2/pull/3693
 
-**4. linkerd edges cmd**
+**linkerd edges**
 
 - Check if application pods are up and running
 - Check if application deployment has desired replicas
 - Issue `linkerd edge` cmd using `-o json` flag, on various resources
 - Validate the `no_tls_reason` field of JSON output.
 
-**5. linkerd routes cmd**
+**linkerd routes**
 - Check if application pods are up and running
 - Issue `linkerd routes` cmd
 - Validate the returned output by counting instances of desired route substrings using `strings.Count`
-
-**6. Distributed Tracing (optional)**
-
-Currently there exist some integration tests for _Distributed tracing_. Applications meshed with Linkerd can be easily tested for this by making a `GET` request on the Jaeger backend at `/api/traces` endpoint on port 16686. (lookback and service parameters shall be made configurable via CLI flags)
-
-
-**7. Canary Release (optional)**
-
-Once a Canary Release is configured, an updated may be triggered. The metrics from the `stat` cmd may be verified to ensure that this feature is configured correctly.
-
-
-**8. Ingress**
+  
+**3. Ingress**
 
 It is essential to test ingress to ensure that the ingress controller re-writes incoming headers to the internal service name. This process ensures that service discovery is working. This test shall include deploying various types of ingress controllers (Nginx, Traefik and Ambassador) :
 
@@ -261,17 +253,17 @@ $ kubectl get svc --all-namespaces \
 
 - Issue a curl cmd on the external IP to check if desired response is returned. This shall be done by wrapping the curl bash cmd as a method in Golang using `command.exec()`.
 
-**8. Data plane proxy health checks**
+**4. Data plane proxy health checks**
 - Issue a `check` command - `linkerd -n <ns> check --proxy -o json`
 - From the output JSON, under `"categoryName" : "linkerd-data-plane"`, verify if `result` of each check under the `checks` array shows `success`.
 - Make a `GET` request to the `linkerd-proxy` containers (of each of the pods) at the `/metrics` (Liveness probe) and `/ready` (Readiness probes) to ensure that they are reachable.
 - From the `linkerd-proxy` container of each of the pods, check for 503 errors.
 
-**9. `tap` extension API server**
+**5. `tap` extension API server**
 - Issue a `check` command - `linkerd -n <ns> check --pre -o json`
 - Validate JSON
 
-**10. Retries and Timeouts**
+**6. Retries and Timeouts**
 - Some of the code from the existing integration tests may be reused for this section. In particular, we're looking for `test/serviceprofiles/serviceprofiles_test.go`
 - After verifying if our _emojivoto_ deployments and services are up and running, a `linkerd routes` cmd shall be issued, and the returned routes are compared to the expected routes. We shall pick deployments that have an edge, For e.g - `web` and `voting`
 - Once the expected routes match the returned routes, a `linkerd profile` cmd must be issued to ensure that a `ServiceProfile` is generated for `web` and `voting`. To do this, we may use the `--tap` flag to generate a `ServiceProfile` based off live traffic data using `tap`. The output of this command shall be piped to `kubectl apply`, much like the `TestHelper.KubectlApply()` method in the integration tests.
@@ -288,8 +280,18 @@ $ kubectl get svc --all-namespaces \
 
 > Note: Additional routes to `voting` may have to be added to give valuable insights on Retries and Timeouts. For example, a route that takes longer than `X` seconds to respond. A timeout of `X` may then be configured to witness the drop in `"effective_success"`. 
 
+**7. Distributed Tracing (optional)**
+
+Currently there exist some integration tests for _Distributed tracing_. Applications meshed with Linkerd can be easily tested for this by making a `GET` request on the Jaeger backend at `/api/traces` endpoint on port 16686. (lookback and service parameters shall be made configurable via CLI flags)
+
+
+**8. Canary Release (optional)**
+
+Once a Canary Release is configured, an updated may be triggered. The metrics from the `stat` cmd may be verified to ensure that this feature is configured correctly.
+
+
 ### Protocol related tests
-It is important to note that these tests could fail if the workloadNamespace property of the test config is set to anything other than the default (moviechat/emojivoto) application.
+It is important to note that these tests could fail if the `workloadNamespace` property of the test config is set to anything other than the default (moviechat/emojivoto) application.
 
 **1. gRPC Streaming**
 
@@ -298,20 +300,22 @@ The movie chat application / emojivoto shall leverage gRPC streaming. It is esse
 - To ensure that there is constant traffic between services that use gRPC, the tests shall issue a `linkerd stat -n <ns> <resource> -o json` cmd. 
 - To test this gRPC traffic, the tests shall validate the `success` field of the JSON output, which ideally should be 1.00 (or 100%).
 
-**Good to have:** The logs gathered by Sonobuoy may also show metrics such as `rps` and the different latencies.
+**Good to have:** 
+
+The logs gathered by Sonobuoy may also show metrics such as `rps` and the different latencies.
 
 **2. Websockets**
 
 Similar to gRPC streaming, it is essential to check if Linkerd does not break services that utilise websocket connections. In our sample application, we create a chat server that handles socket connections to and fro from the web application. To test this, we can ping the websocket endpoints using curl. For example:
 
 ```bash
-curl --include --no-buffer \
+$ curl --include --no-buffer \
     --header "Connection: close" \
     --header "Upgrade: websocket" \
     http://localhost:3000/socket
 ```
 
-This cmd would return a response from the websocket server from the /socket endpoint where websockets shall be served.
+This command would return a response from the websocket server from the /socket endpoint where websockets shall be served.
 
 **3. MySQL and Redis***
 
