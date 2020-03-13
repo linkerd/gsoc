@@ -29,9 +29,9 @@ We initially start off by modifying the existing emojivoto application to have f
 The proposed test framework shall be written using Go. Apart from managing output results, the standard `testing` framework provides us features that our conformance test suite could leverage, for E.g - running tests in parallel, passing command line flags to make tests configurable, skipping tests, etc.
 
 
-Additionally, we may use [Sonobuoy](https://sonobuoy.io/) to run our test framework. Hence, this RFC proposes 2 ways to run the test framework :
+Additionally, we may use [Sonobuoy](https://sonobuoy.io/) as a wrapper around our test framework. Hence, this RFC proposes 2 ways to run the test framework.
 
-### 1. Running the tests vanilla style
+### 1. Running the tests vanilla style (default mode)
 First let us look at how the test framework can run without having to depend on Sonobuoy. To do so, we provide 2 essential items as a part of the project :
 1. A `run.sh` file that accepts a list of flags (see use case and implementation details below) and calls `go test` accordingly.
 2. The test suite (the `_test.go` files)
@@ -42,14 +42,14 @@ To run the test suite, users will be required to execute `./run.sh` with a bunch
 
 Sonobuoy is a great tool when it comes to conformance validation. Its [plugin model](https://sonobuoy.io/docs/master/plugins/) can allow us to easily extend functionality beyond K8s conformance validation. Essentially, Sonobuoy runs your test suite in a pod in the cluster, hence, also saves developers the overhead of configuring the desired objects such as Namespaces, ServieAccounts, ClusterRoleBindings, Jobs, RBAC, etc.
 
-Now, for the ease of management of the project, we simply extend our "vanilla" approach as stated above, to provide a [sonobuoy plugin](https://sonobuoy.io/docs/master/plugins/). Hence, we require 2 new items :
+Now, for the ease of management of the project, we simply extend our default approach as described above, to provide a [sonobuoy plugin](https://sonobuoy.io/docs/master/plugins/). Hence, we require 2 new items :
 
 **1. A Docker image to house our test suite**
 
-As per Sonobuoy's requirements, the test suite and its dependencies shall be packaged as a Docker container. This container shall run as a job in the cluster. In the Dockerfile, we define that the following must happen :
+As per Sonobuoy's requirements, the test suite and its dependencies shall be packaged as a Docker container. This container shall run as a job in the cluster. In the Dockerfile, we define that the following must happen
 
 - Setup and install all the binaries/tools required by the testing environment - `linkerd`, `kubectl`, `mysql`, etc.
-- Copy _run.sh_ file that initiates the tests. (Note that we are reusing the same `run.sh` file from the "vanilla" approach).
+- Copy _run.sh_ file that initiates the tests. (Note that we are reusing the same `run.sh` file from the default approach).
 - Copy the test suite
 - ENTRYPOINT `./run.sh`
 
@@ -60,7 +60,7 @@ We may also have to host this Docker image on a public repository, for E.g - _gc
 
 **2. A sonobuoy plugin file (YAML)**
 
-The main function of Sonobuoy is running plugins; each plugin may run tests or gather data in the cluster. A plugin is defined using a YAML file. This plugin definition file holds information such as 
+The main function of Sonobuoy is running plugins; each plugin may run tests or gather data in the cluster. A plugin is defined using a YAML file that holds information such as 
 
 - Name of plugin
 - Format of result
@@ -111,7 +111,7 @@ mkdir results && tar -xf $outfile -C results
 The `run.sh` file performs the following functionalities :
 
 #### 1. Build and issue a `go test` command
-The `run.sh` file shall be made executable and shall accept flags to make the tests configurable as well as set `linkerd install` options.
+The executable `run.sh` file shall shall accept flags and build a `go test` cmd to make the tests configurable as well as set `linkerd install` options.
 
 Usage : 
 ```bash
@@ -147,12 +147,12 @@ Flags :
 -   `--identity-issuer-certificate-file`
 -  `--identity-issuer-key-file`
 -  `--identity-issuance-lifetime=1m`
--  `--proxy-cpu-limit=1`
--  `--proxy-cpu-request=100m`
--  `--proxy-memory-limit=250Mi`
--  `--proxy-memory-request=20Mi`
+-  `--proxy-cpu-limit`
+-  `--proxy-cpu-request`
+-  `--proxy-memory-limit`
+-  `--proxy-memory-request`
 -  `--ha`
--  `--addon-config=addon-config.yaml`
+-  `--addon-config`
 
 Sample Usage :
 ```bash
