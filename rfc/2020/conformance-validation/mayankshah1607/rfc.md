@@ -417,8 +417,8 @@ It is a non-goal for this project to provide an application that is expected to 
 
 [unresolved-questions]: #unresolved-questions
 
-This project proposes that tests be written in golang mainly due to how easy it is to manage outputs and assertions, organize tests and maintain readability. Having the option to use client-go k8s API could be another plus point. However, shell script may be a good tool too to write these tests, but we should also consider factors such as contributor experience. Would love to have the community’s opinion regarding this.
-
+1. Should we consider writing the test suite as well in shell? Currently, using golang would make it much easier to write a lot of the tests.
+2. Where would this project live? Should a separate repo be created for this, or is it okay to have this in the `linkerd2` repo?
 
 # Future possibilities
 
