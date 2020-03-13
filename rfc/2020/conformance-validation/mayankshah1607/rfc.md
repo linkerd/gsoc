@@ -26,7 +26,7 @@ The e2e conformance tests proposed would be carried out outside the Linkerd CI. 
 We initially start off by modifying the existing emojivoto application to have feature flags to enable/disable features such as MySQL, Redis, gRPC, websockets, etc. This is important because emojivoto is heavily used in the getting started process.
 
 ## Implementation Details
-The proposed test framework shall be written using Go. Apart from managing output results, the standard `testing` framework provides us features that our conformance test suite could leverage, for E.g - running tests in parallel, passing command line flags to make tests configurable, skipping tests, etc. Moreover, this shall also give us the flexibility to reuse existing code (packages, objects, etc.) from the _linkerd2_ codebase. It would then also be possible to use _kubernetes/client-go_ to neatly write and manage code that can read from the cluster. 
+The proposed test framework shall be written using Go. Apart from managing outputs, the standard `testing` framework provides us features that our conformance test suite could leverage, for e.g - running tests in parallel, passing command line flags to make tests configurable, skipping tests, etc. Moreover, this shall also give us the flexibility to reuse existing code (packages, objects, etc.) from the _linkerd2_ codebase. It would then also be possible to use _kubernetes/client-go_ to neatly write and manage code that can read from the cluster. 
 
 
 Additionally, we may use [Sonobuoy](https://sonobuoy.io/) as a wrapper around our test framework. Hence, this RFC proposes 2 ways to run the test framework.
@@ -111,7 +111,7 @@ mkdir results && tar -xf $outfile -C results
 The `run.sh` file performs the following functionalities :
 
 #### 1. Build and issue a `go test` command
-The executable `run.sh` file shall shall accept flags and build a `go test` cmd to make the tests configurable as well as set `linkerd install` options.
+The executable `run.sh` file shall accept flags and build a `go test` cmd to make the tests configurable as well as set `linkerd install` options.
 
 Usage : 
 ```bash
@@ -337,7 +337,7 @@ $ curl --include --no-buffer \
 
 This command would return a response from the websocket server from the /socket endpoint where websockets shall be served.
 
-**3. MySQL and Redis***
+**3. MySQL and Redis**
 
 - The emojivoto application shall be modified to have persistent storage. The `voting` deployment may be configured to work with MySQL and Redis (for cache). 
 - The `vote-bot` deployment may send constant traffic to `voting` which can be setup to simulate :
