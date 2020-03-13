@@ -26,7 +26,7 @@ The e2e conformance tests proposed would be carried out outside the Linkerd CI. 
 We initially start off by modifying the existing emojivoto application to have feature flags to enable/disable features such as MySQL, Redis, gRPC, websockets, etc. This is important because emojivoto is heavily used in the getting started process.
 
 ## Implementation Details
-The proposed test framework shall be written using Go. Apart from managing output results, the standard `testing` framework provides us features that our conformance test suite could leverage, for E.g - running tests in parallel, passing command line flags to make tests configurable, skipping tests, etc.
+The proposed test framework shall be written using Go. Apart from managing output results, the standard `testing` framework provides us features that our conformance test suite could leverage, for E.g - running tests in parallel, passing command line flags to make tests configurable, skipping tests, etc. Moreover, this shall also give us the flexibility to reuse existing code (packages, objects, etc.) from the _linkerd2_ codebase. It would then also be possible to use _kubernetes/client-go_ to neatly write and manage code that can read from the cluster. 
 
 
 Additionally, we may use [Sonobuoy](https://sonobuoy.io/) as a wrapper around our test framework. Hence, this RFC proposes 2 ways to run the test framework.
@@ -349,26 +349,18 @@ Similarly, any known corner cases related to the infrastructure of the cluster c
   
 > Note: Users may be allowed to mention such specifications in the test configuration file as mentioned above.
 
-## Dependencies on tools / libraries 
+## Dependencies on tools / libraries
 
-**External dependencies (We use these tools as a wrapper for our tests so users may interact with it):**
+- Go
+- shell scripting
 - Docker
 - Sonobuoy
-
-**Internal dependencies (tools required inside the container environment):**
 - Kubectl
 - Linkerd
 - MySQL
 - Redis
 - curl
-
-**Tools and libraries required for writing the tests:**
-
-Writing the tests using golang seems a great fit for our use cases for 3 reasons:
-- Managing output and assertion
-- The k8s APIs and ecosystem built around go would make it simpler to write the logic
-- Testing frameworks like ginkgo make it easier to bootstrap, organize and manage test suites semantically - this would improve contributor experience by preserving readability and maintainability of the test suite. Ginkgo also allows us to use custom reporters that may help us store the results of these tests.
-Nevertheless, sticking to the standard testing framework also gives us great control over the flow and management of output / assertion. 
+- [Ginkgo](https://github.com/onsi/ginkgo) (good-to-have)
 
 
 ## Use Cases
