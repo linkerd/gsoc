@@ -141,12 +141,17 @@ Flags :
 
 --out String
     filepath to store the result. Ignored in case of Sonobuoy
+
+-- workloadNamespace String
+    This could be a future possibility. The value of this flag identifies the namespace of the workloads against which the conformance tests must run.
 ```
+These test configuration specific flags are passed down to the test suite using the _flags_ go module. These values may be stored in variables (instance of objects, for e.g `TestOptions`) so that tests may run accordingly.
+
 **(Essential `linkerd install` flags to accept)**
 - `--identity-trust-anchors-file` 
 -   `--identity-issuer-certificate-file`
 -  `--identity-issuer-key-file`
--  `--identity-issuance-lifetime=1m`
+-  `--identity-issuance-lifetime`
 -  `--proxy-cpu-limit`
 -  `--proxy-cpu-request`
 -  `--proxy-memory-limit`
@@ -424,8 +429,8 @@ It is a non-goal for this project to provide an application that is expected to 
 
 [future-possibilities]: #future-possibilities
 
-As a Linkerd user, it is important to know that Linkerd works with my services, not just emojivoto. Setting the `workloadNamespace` property in the test configuration file gives the users this flexibility :
-- During runtime, the value for this property is picked up from the unmarshalled object, and a `config.linkerd.io/e2e: conformance` label is appended to the namespace config
+As a Linkerd user, it is important to know that Linkerd works with my services, not just emojivoto. Setting the `workloadNamespace` flag while executing `./run.sh` gives the users this flexibility.
+- `config.linkerd.io/e2e: conformance` label is appended to the namespace config
 - The tests then hit the k8s API with a label selector to annotate all objects (deployments) under this namespace with the `linkerd.io/inject: enabled` annotation to trigger auto-injection.
 - It is crucial for Linkerd commands like `stat`, `route` and `edge` to support label selectors, hence, a patch for this must be made.
 
