@@ -21,42 +21,157 @@ Linkerd has an extensive check suite that validates a cluster is ready to instal
 [design-proposal]: #design-proposal
 
 ## Interaction with other features
-The e2e conformance tests proposed would be carried out outside the Linkerd CI. These tests would make use of the `kubectl` and `linkerd` binaries to interact with the cluster and with various features Linkerd can perform. The testing process can be configured easily using a YAML definition file (more details explained under “implementation details”). Such an approach gives the users the flexibility in diagnosing the state of their cluster w.r.t. Linkerd. 
+The e2e conformance tests proposed would be carried out outside the Linkerd CI. These tests would make use of the `kubectl` and `linkerd` binaries to interact with the cluster and with various features Linkerd can perform.
 
 We initially start off by modifying the existing emojivoto application to have feature flags to enable/disable features such as MySQL, Redis, gRPC, websockets, etc. This is important because emojivoto is heavily used in the getting started process.
 
 ## Implementation Details
-The test suite and its dependencies shall be packaged as a Docker container. This container shall run as a job in the cluster. In the Dockerfile, we define that the following must happen :
+The proposed test framework shall be written using Go. Apart from managing output results, the standard `testing` framework provides us features that our conformance test suite could leverage, for E.g - running tests in parallel, passing command line flags to make tests configurable, skipping tests, etc.
+
+
+Additionally, we may use [Sonobuoy](https://sonobuoy.io/) to run our test framework. Hence, this RFC proposes 2 ways to run the test framework :
+
+### 1. Running the tests vanilla style
+First let us look at how the test framework can run without having to depend on Sonobuoy. To do so, we provide 2 essential items as a part of the project :
+1. A `run.sh` file that accepts a list of flags (see use case and implementation details below) and calls `go test` accordingly.
+2. The test suite (the `_test.go` files)
+
+To run the test suite, users will be required to execute `./run.sh` with a bunch of flags (more details below). Further, the output of the tests shall be written to a filepath passed as a flag to `./run.sh`.
+
+### 2. Using Sonobuoy
+
+Sonobuoy is a great tool when it comes to conformance validation. Its [plugin model](https://sonobuoy.io/docs/master/plugins/) can allow us to easily extend functionality beyond K8s conformance validation. Essentially, Sonobuoy runs your test suite in a pod in the cluster, hence, also saves developers the overhead of configuring the desired objects such as Namespaces, ServieAccounts, ClusterRoleBindings, Jobs, RBAC, etc.
+
+Now, for the ease of management of the project, we simply extend our "vanilla" approach as stated above, to provide a [sonobuoy plugin](https://sonobuoy.io/docs/master/plugins/). Hence, we require 2 new items :
+
+**1. A Docker image to house our test suite**
+
+As per Sonobuoy's requirements, the test suite and its dependencies shall be packaged as a Docker container. This container shall run as a job in the cluster. In the Dockerfile, we define that the following must happen :
 
 - Setup and install all the binaries/tools required by the testing environment - `linkerd`, `kubectl`, `mysql`, etc.
-- Copy the test configuration file _conformance_config.yaml_ which is responsible for describing how the tests must run (see below for implementation details).
-- Copy _run.sh_ file that initiates the tests using the `go test` cmd.
+- Copy _run.sh_ file that initiates the tests. (Note that we are reusing the same `run.sh` file from the "vanilla" approach).
 - Copy the test suite
-- ENTRYPOINT / CMD that executes `./run.sh`
+- ENTRYPOINT `./run.sh`
 
-Users may easily run this container as a job using [Sonobuoy](https://sonobuoy.io/). It is a great tool when it comes to conformance validation, and its [plugin model](https://sonobuoy.io/docs/master/plugins/) can allow us to easily extend functionality beyond k8s conformance validtion. Sonobuoy also saves developers the overhead of configuring the desired objects such as Namespaces, ServieAccounts, ClusterRoleBindings, Jobs, RBAC, etc.
 
-> Note: When generating a Sonobuoy plugin, the plugin definition file sets the start-up command as ./run.sh by default. If we set the container’s ENTRYPOINT/CMD as `go test`, this may get overridden to `./run.sh` because of how Sonobuoy generates plugins. The generated plugin definition file may however be modified to not override the startup command of the container, but this may have a negative impact on the user experience.
+> Note: When generating a Sonobuoy plugin, the plugin definition file sets the start-up command as `./run.sh` by default. If we set the container’s ENTRYPOINT as `go test`, this may get overridden to `./run.sh` because of how Sonobuoy generates and runs plugins. The generated plugin definition file may however be modified to not override the startup command of the container, but this may have a negative impact on the user experience. It is important that we maintain consistency of usage in this aspect.
+
+We may also have to host this Docker image on a public repository, for E.g - _gcr.io/linkerd.io/conformance:v1.0.0_. The significance of this can be understood from the next step.
+
+**2. A sonobuoy plugin file (YAML)**
+
+The main function of Sonobuoy is running plugins; each plugin may run tests or gather data in the cluster. A plugin is defined using a YAML file. This plugin definition file holds information such as 
+
+- Name of plugin
+- Format of result
+- Type of a plugin - Job or DaemonSet
+- Command to execute
+- args/flags for the the command
+- The Docker image to use
+- volumeMounts - for storing results
+
+We shall provide a plugin file, _l5d_conformance.yaml_ for running our test framework as a Sonobuoy plugin. It may look something like :
+```yaml
+sonobuoy-config:
+  driver: Job
+  plugin-name: l5d-conformacne
+  result-format: raw
+spec:
+  args:
+  - --enableTest="TestAutoProxyInjection/*" \
+  - --failFast \
+  - --ha \
+  - --addon-config=addon-config.yaml
+  # flags should be added here. More information regarding these is described below
+  command:
+  - ./run.sh
+  image: _gcr.io/linkerd.io/conformance:v1.0.0_
+  name: plugin
+  resources: {}
+  volumeMounts:
+  - mountPath: /tmp/results
+    name: results
+``` 
 
 In order to run the Sonobuoy plugin, users/testers shall be required to carry out the following steps:
+
+1. Edit the above mentioned plugin file as required. This involves modifying the list of args.
+
+2. Run the plugin
 ```bash
-# setup docker registry
-$ export USER=<your public registry>
-$ docker build . -t $USER/progress-reporter:v0.1
-$ docker push $USER/progress-reporter:v0.1
-
-# configure plugin
-$ sonobuoy gen plugin \
---name=l5d-conformance \
---image $USER/l5d-conformance:v0.1 > l5d-conformance.yaml
-
-# run plugin
 $ sonobuoy run --plugin l5d-conformance.yaml
-
-# collect output
-outfile=$(sonobuoy retrieve) && \
+```
+3. Collect output
+```
+$ outfile=$(sonobuoy retrieve) && \
 mkdir results && tar -xf $outfile -C results
 ```
+---
+### The role of `run.sh`
+The `run.sh` file performs the following functionalities :
+
+#### 1. Build and issue a `go test` command
+The `run.sh` file shall be made executable and shall accept flags to make the tests configurable as well as set `linkerd install` options.
+
+Usage : 
+```bash
+./run.sh [flags]
+```
+Flags :
+
+**(Specific to test configuration)**
+``` 
+--wait String
+    duration for which the tests must wait for pods to come to a running state
+
+--enableTests String
+    Comma separated list of test names that must be executed. This is later converted into regexp and passed as a flag value for `-run` for `go test` command.
+
+--skipTests String
+    Comma separated list of test names that must be skipped. The value of this is later used in the go code with the t.Skip() method.
+
+--failFast
+    Do not start new tests after the first test failure.
+
+--parallel int
+    Number of tests to run in parallel
+
+--buildTags String
+    Comma separated list of tags that must be included in the test
+
+--out String
+    filepath to store the result. Ignored in case of Sonobuoy
+```
+**(Essential `linkerd install` flags to accept)**
+- `--identity-trust-anchors-file` 
+-   `--identity-issuer-certificate-file`
+-  `--identity-issuer-key-file`
+-  `--identity-issuance-lifetime=1m`
+-  `--proxy-cpu-limit=1`
+-  `--proxy-cpu-request=100m`
+-  `--proxy-memory-limit=250Mi`
+-  `--proxy-memory-request=20Mi`
+-  `--ha`
+-  `--addon-config=addon-config.yaml`
+
+Sample Usage :
+```bash
+./run.sh --wait=30s \
+    --enableTest="TestAutoProxyInjection/*" \
+    --failFast \
+    --identity-trust-anchors-file=ca.crt \
+    --identity-issuer-certificate-file=issuer.crt \
+    --identity-issuer-key-file=issuer.key \
+    --identity-issuance-lifetime=1m \
+    --proxy-cpu-limit=1 \
+    --proxy-cpu-request=100m \
+    --proxy-memory-limit=250Mi \
+    --proxy-memory-request=20Mi \
+    --ha \
+    --addon-config=addon-config.yaml
+```
+
+#### 2. Pre-flight checks
 
 Before the test suite is run, the following actions shall be carried out in sequence:
 1. Check if `kubectl` binary is available
@@ -67,104 +182,7 @@ Before the test suite is run, the following actions shall be carried out in sequ
 
 Once the test suite is complete (success / failure ) all resources created for the test are destroyed if not immediately after each test.
 
-**Nice to have:**
-
-- Users shall also be allowed to run these tests without having to depend on Sonobuoy. Much like the [Kubernetes conformance validation process](https://github.com/kubernetes/kubernetes/tree/master/cluster/images/conformance) we can provide a YAML configuration file that can be used to run a pod that runs these tests on the cluster. This YAML configuration file is responsible for setting up things like namespace, service account, ClusterRoleBindings, the test runner pod, etc. ([See example](https://github.com/kubernetes/kubernetes/tree/master/cluster/images/conformance))
-
-- If the users wish to proceed with Sonobuoy but want an easier way to do things, we can provide a default Docker image - Eg : _gcr.io/linkerd.io/conformance:v1.0.0_ . Additionally, we may also provide a Sonobuoy plugin file (as seen above in the "configure plugin" step) that uses the above mentioned Docker image, for e.g - _https://run.linkerd.io/path/to/plugin.yaml_.
-
-The users would then simply have to run :
-```bash
-$ sonobuoy run --plugin https://run.linkerd.io/path/to/plugin.yaml
-```
-
-This approach is great if users quickly want to get the conformance validation tool up and running - they're no longer required to setup a Docker image locally (see "setup docker registry" step) or deal with configuring a customized plugin (see "configure plugin" step)
-
-### Test Configuration
-The conformance test suite proposed in this project shall be made customizable as per the users’ preferences, which they may mention in a YAML file. Such an approach not only enhances user experience but can also give the testers greater insights on their cluster and Linkerd.
-
-The tests (which shall be written in go) rely on this configuration file to setup various `linkerd install` options and different test options mentioned below.
-This configuration file shall be unmarshalled (using the `go-yaml` library) into an object so that tests may read the desired properties from it and can run accordingly.
-
-> Note: The above mentioned `run.sh` file does not rely on this configuration file. The script is only responsible for issuing the `go test` cmd. This configuration file is meant for the go code to initialize a struct that the tests can read from.
- 
-This feature gives users the flexibility of running tests according to their preferences. If this file is absent, the test tool shall be made to automatically use default values for the tests. For E.g, assume a struct `TestOptions` that holds the values from this file. We may have a method that reads values from this config file and returns an instance of `TestOptions` for the tests to read from. If the file is absent, this method can return an instance of `TestOptions` with some defaults.
-
-Below is the proposed structure for this configuration file: 
-```yaml
-installOptions:
-    bools: <array>
-        # `linkerd install` flags that are booleans
-        # useful for install config like ha
-    values: 
-        # `linkerd install` flags that hold values
-        # useful for properties like external certs, mtls
-testOptions:
-    # duration for which tests must wait for pods to come to running state
-    wait: <int>
-    
-    # lookback time used for tracing
-    tracingLookback: <String>
-    
-    # service used for tracing
-    tracingService: <String>
-
-    # array of test names that must be executed
-    # If empty, run all tests
-    enableTests: <array>
-
-    # whether to inject MySQL pod 
-    injectMySQL: <bool>                                                                     
-
-    # whether to inject Redis pods
-    injectRedis: <bool>
-   
-   # users may be allowed to run these tests on
-   # services other than the default movieChat by 
-   # mentioning the namespace in which they are deployed
-   # However, protocol / topology related tests might fail
-   # if running on non-default namespace
-   # GOOD-TO-HAVE feature
-   workloadNamespace: <String> 
-
-   # RBAC configuration to be used if on GKE
-   # If left empty, use default RBAC settings as
-   # mentioned here
-   gkeRbacConfig: <string>
-
-```
-
-This is great for things like setting installation options and additional test preferences such as which tests to run, wait time, lookback time for tracing, whether to inject MySQL / Redis pods, etc. An example configuration file :
-
-```yaml
-installOptions:
-    bools:
-        - control-plane-tracing
-        - ha
-        - disable-h2-upgrade
-    values:
-        identity-external-issuer: ./certs/ca.crt
-        identity-issuer-certificate-file : ./certs/issuer.crt
-        identity-issuer-key-file: issuer.key
-testOptions:
-    wait: 10000
-    tracingLookback: 1h
-    tracingService: nginx
-    enableTests:
-        - proxy-injection
-        - tap
-        - distributed-tracing
-        - canary
-        - ingress
-    injectMySQL: true
-    injectRedis: true
-    workloadNamespace: moviechat
-    gkeRbacConfig: ./path/to/config
-
-```
-
-Alternatively, we may also configure the tests imperatively. The `./run.sh` can be made to accept command line arguments. But this may not have a positive impact on the user experience due to the large number of arguments that may exist. Further, having a YAML configuration file for the same gives the advantage of storing these values that may be reused later on. 
-
+---
 ### Testing Methodologies for various features
 The conformance test suite is intended to be run against an installation of Linkerd. Passing this test suite would give the user the assurance that a given configuration of Linkerd works (as expected) with a given version of Kubernetes and its cluster configuration. Users may easily configure install options and test preferences using the test configuration file provided.
 
@@ -284,7 +302,6 @@ $ kubectl get svc --all-namespaces \
 
 Currently there exist some integration tests for _Distributed tracing_. Applications meshed with Linkerd can be easily tested for this by making a `GET` request on the Jaeger backend at `/api/traces` endpoint on port 16686. (lookback and service parameters shall be made configurable via CLI flags)
 
-
 **8. Canary Release (optional)**
 
 Once a Canary Release is configured, an updated may be triggered. The metrics from the `stat` cmd may be verified to ensure that this feature is configured correctly.
@@ -300,9 +317,7 @@ The movie chat application / emojivoto shall leverage gRPC streaming. It is esse
 - To ensure that there is constant traffic between services that use gRPC, the tests shall issue a `linkerd stat -n <ns> <resource> -o json` cmd. 
 - To test this gRPC traffic, the tests shall validate the `success` field of the JSON output, which ideally should be 1.00 (or 100%).
 
-**Good to have:** 
-
-The logs gathered by Sonobuoy may also show metrics such as `rps` and the different latencies.
+**Good to have:**  The logs gathered by Sonobuoy may also show metrics such as `rps` and the different latencies.
 
 **2. Websockets**
 
