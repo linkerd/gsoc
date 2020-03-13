@@ -393,6 +393,7 @@ It is a non-goal for this project to provide an application that is expected to 
     4. Retries and Timeouts
     5. Verifying if Data Plane proxies are healthy
     6. Ingress
+- A Sonobuoy plugin for our test suite
 
 - A sample emojivoto app with feature flags that can enable/disable features required for conformance vaidation.
 
