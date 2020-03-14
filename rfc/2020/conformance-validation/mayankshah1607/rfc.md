@@ -142,10 +142,13 @@ Flags :
 --out String
     filepath to store the result. Ignored in case of Sonobuoy
 
--- workloadNamespace String
+--skipInstall
+    skips the `linkerd install` process. This is useful for testers who already have linkerd installed prior to running the tests
+
+--workloadNamespace String
     This could be a future possibility. The value of this flag identifies the namespace of the workloads against which the conformance tests must run.
 ```
-These test configuration specific flags are passed down to the test suite using the _flags_ go module. These values may be stored in variables (instance of objects, for e.g `TestOptions`) so that tests may run accordingly.
+Internally, the script builds a `go test` command by simply appending these values to it. The test configuration specific flags (such as `--wait`,`--enableTests`,`--workloadNamespace`, etc) are passed down to the test suite using the _flags_ go module. These values may be stored in variables (instance of objects, for e.g `TestOptions`) so that tests may run accordingly. A universal `TestHelper` object may also be used to make the flag management process easier.
 
 **(Essential `linkerd install` flags to accept)**
 - `--identity-trust-anchors-file` 
@@ -158,6 +161,8 @@ These test configuration specific flags are passed down to the test suite using 
 -  `--proxy-memory-request`
 -  `--ha`
 -  `--addon-config`
+
+The script also builds a `linkerd install` command by simply appending these flags to it. The built command is then executed to install linkerd on the cluster.
 
 Sample Usage :
 ```bash
