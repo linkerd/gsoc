@@ -283,8 +283,10 @@ $ kubectl get svc --all-namespaces \
 - From the `linkerd-proxy` container of each of the pods, check for 503 errors.
 
 **5. `tap` extension API server**
+
+Some custom Kubernetes clusters don't always have the aggregation layer configured, causing the tap service which is an extension API server to fail.
 - Issue a `check` command - `linkerd -n <ns> check --pre -o json`
-- Validate JSON
+- Validate the returned JSON by ensuring that the array the check with description `"can read extension-apiserver-authentication configmap"` under category `"pre-kubernetes-setup"` says `"success"`
 
 **6. Retries and Timeouts**
 - Some of the code from the existing integration tests may be reused for this section. In particular, we're looking for `test/serviceprofiles/serviceprofiles_test.go`
