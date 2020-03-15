@@ -26,7 +26,7 @@ The e2e conformance tests proposed would be carried out outside the Linkerd CI. 
 We initially start off by modifying the existing emojivoto application to have feature flags to enable/disable features such as MySQL, Redis, gRPC, websockets, etc. This is important because emojivoto is heavily used in the getting started process.
 
 ## Implementation Details
-The proposed test framework shall be written using Go. Apart from managing outputs, the standard `testing` framework provides us features that our conformance test suite could leverage, for e.g - running tests in parallel, passing command line flags to make tests configurable, skipping tests, etc. Moreover, this shall also give us the flexibility to reuse existing code (packages, objects, etc.) from the _linkerd2_ codebase. It would then also be possible to use _kubernetes/client-go_ to neatly write and manage code that can read from the cluster. 
+The proposed test framework shall be written using Go. Apart from managing outputs, the standard `testing` framework provides us features that our conformance test suite could leverage, for e.g - running tests in parallel, passing command line flags to make tests configurable, skipping tests, etc. Moreover, this shall also give us the flexibility to reuse existing code (packages, objects, etc.) from the _linkerd2_ codebase. It would then also be possible to use [kubernetes/client-go](https://github.com/kubernetes/client-go) to neatly write and manage code that can read from the cluster. 
 
 
 Additionally, we may use [Sonobuoy](https://sonobuoy.io/) as a wrapper around our test framework. Hence, this RFC proposes 2 ways to run the test framework.
@@ -85,7 +85,7 @@ spec:
   # flags should be added here. More information regarding these is described below
   command:
   - ./run.sh
-  image: _gcr.io/linkerd.io/conformance:v1.0.0_
+  image: gcr.io/linkerd.io/conformance:v1.0.0
   name: plugin
   resources: {}
   volumeMounts:
@@ -194,9 +194,7 @@ Once the test suite is complete (success / failure ) all resources created for t
 
 ---
 ### Testing Methodologies for various features
-The conformance test suite is intended to be run against an installation of Linkerd. Passing this test suite would give the user the assurance that a given configuration of Linkerd works (as expected) with a given version of Kubernetes and its cluster configuration. Users may easily configure install options and test preferences using the test configuration file provided.
-
-The tests shall be written using Go. This is primarily due how easy it is to manage and verify
+The conformance test suite is intended to be run against an installation of Linkerd. Passing this test suite would give the user the assurance that a given configuration of Linkerd works (as expected) with a given version of Kubernetes and its cluster configuration.
 
 This section includes write ups regarding testing methodologies for some primary features:
 
@@ -237,7 +235,7 @@ This test will work by issuing the `linkerd tap` cmd on various resources of the
 - Check if application pods are up and running
 - Check if application deployment has desired replicas
 - Issue `linkerd edge` cmd using `-o json` flag, on various resources
-- Validate the `no_tls_reason` field of JSON output.
+- Validate the `no_tls_reason` field of JSON output to ensure that the edges are mTLS'ed.
 
 **linkerd routes**
 - Check if application pods are up and running
