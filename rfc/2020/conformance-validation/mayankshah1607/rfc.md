@@ -36,8 +36,9 @@ First let us look at how the test framework can run without having to depend on 
 1. A `run.sh` file that accepts a list of flags (see use case and implementation details below) and calls `go test` accordingly.
 2. The test suite (the `_test.go` files)
 
-To run the test suite, users will be required to execute `./run.sh` with a bunch of flags (more details below). Further, the output of the tests shall be written to a filepath passed as a flag to `./run.sh`.
+To run the test suite, users will be required to execute `./run.sh` with a bunch of flags (more details below). Further, the output of the tests shall be written to a filepath passed as a flag to `./run.sh`. By default, `stdout` shall be used to show output of the tests.
 
+> As a part of this default mode, users shall be allowed to run these tests in a container as well. We make use of the Dockerfile being introduced in the next section (Read below).
 
 ### 2. Using Sonobuoy
 
@@ -53,9 +54,6 @@ As per Sonobuoy's requirements, the test suite and its dependencies shall be pac
 - Copy _run.sh_ file that initiates the tests. (Note that we are reusing the same `run.sh` file from the default approach).
 - Copy the test suite
 - ENTRYPOINT `./run.sh`
-
-
-We may also have to host this Docker image on a public repository, for E.g - _gcr.io/linkerd.io/conformance:v1.0.0_. The significance of this can be understood from the next step.
 
 **Good-to-have:**
 
@@ -75,6 +73,7 @@ $ docker push <user>/l5d-conformance
 ```
 Additionally, we may provide a Makefile that runs these commands for the user. However, we may have to re-think the way they can pass `./run.sh` flags (One option could be to have them edit the Makefile according to their needs).
 
+We may also host this Docker image on a public repository, for e.g - _gcr.io/linkerd.io/conformance:v1.0.0_. The Sonobuoy plugin file (see next step) may benefit from this.
 
 **2. A sonobuoy plugin file (YAML)**
 
@@ -158,7 +157,7 @@ Flags :
     Comma separated list of tags that must be included in the test
 
 --o String
-    Filepath to store the result. Ignored in case of Sonobuoy
+    Filepath to store the result. Ignored in case of Sonobuoy 
 
 --skipInstall
     Skips the `linkerd install` process. This is useful for testers who already have linkerd installed prior to running the tests
