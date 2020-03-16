@@ -74,7 +74,7 @@ We shall provide a plugin file, _l5d_conformance.yaml_ for running our test fram
 ```yaml
 sonobuoy-config:
   driver: Job
-  plugin-name: l5d-conformacne
+  plugin-name: l5d-conformance
   result-format: raw
 spec:
   args:
