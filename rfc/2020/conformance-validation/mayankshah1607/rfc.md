@@ -38,6 +38,7 @@ First let us look at how the test framework can run without having to depend on 
 
 To run the test suite, users will be required to execute `./run.sh` with a bunch of flags (more details below). Further, the output of the tests shall be written to a filepath passed as a flag to `./run.sh`.
 
+
 ### 2. Using Sonobuoy
 
 Sonobuoy is a great tool when it comes to conformance validation. Its [plugin model](https://sonobuoy.io/docs/master/plugins/) can allow us to easily extend functionality beyond K8s conformance validation. Essentially, Sonobuoy runs your test suite in a pod in the cluster, hence, also saves developers the overhead of configuring the desired objects such as Namespaces, ServieAccounts, ClusterRoleBindings, Jobs, RBAC, etc.
@@ -54,9 +55,26 @@ As per Sonobuoy's requirements, the test suite and its dependencies shall be pac
 - ENTRYPOINT `./run.sh`
 
 
-> Note: When generating a Sonobuoy plugin, the plugin definition file sets the start-up command as `./run.sh` by default. If we set the container’s ENTRYPOINT as `go test`, this may get overridden to `./run.sh` because of how Sonobuoy generates and runs plugins. The generated plugin definition file may however be modified to not override the startup command of the container, but this may have a negative impact on the user experience. It is important that we maintain consistency of usage in this aspect.
-
 We may also have to host this Docker image on a public repository, for E.g - _gcr.io/linkerd.io/conformance:v1.0.0_. The significance of this can be understood from the next step.
+
+**Good-to-have:**
+
+Furthermore, having a Dockerfile would not only give us the benefit of being able to use Sonobuoy, but also that users may be able to run
+the tests in a Docker container as a part of the default mode (See previous section), instead of running it on the local environment.
+
+To do so, users have to execute the following commands:
+```bash
+# build the container
+$ docker build <user>/l5d-conformance:latest
+
+# run the container
+$ docker run -it -v ~/.kube/config:~/.kube/config <user>/l5d-conformance [run.sh args]
+
+# Optional
+$ docker push <user>/l5d-conformance
+```
+Additionally, we may provide a Makefile that runs these commands for the user. However, we may have to re-think the way they can pass `./run.sh` flags (One option could be to have them edit the Makefile according to their needs).
+
 
 **2. A sonobuoy plugin file (YAML)**
 
@@ -139,11 +157,17 @@ Flags :
 --buildTags String
     Comma separated list of tags that must be included in the test
 
---out String
-    filepath to store the result. Ignored in case of Sonobuoy
+--o String
+    Filepath to store the result. Ignored in case of Sonobuoy
 
 --skipInstall
-    skips the `linkerd install` process. This is useful for testers who already have linkerd installed prior to running the tests
+    Skips the `linkerd install` process. This is useful for testers who already have linkerd installed prior to running the tests
+
+--addon-config String
+    Filepath to the addon config file. This flag must be used only in "default mode"
+
+--addon-config-sonobuoy String
+    Filepath to the addon config file. This flag must be used only for Sonobuoy. The value of this command is passed to `kubectl cp` command to copy the addon config file to the Sonobuoy pod
 
 --workloadNamespace String
     This could be a future possibility. The value of this flag identifies the namespace of the workloads against which the conformance tests must run.
