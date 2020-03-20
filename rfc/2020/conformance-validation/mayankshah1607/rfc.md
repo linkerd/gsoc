@@ -124,6 +124,7 @@ $ outfile=$(sonobuoy retrieve) && \
 mkdir results && tar -xf $outfile -C results
 ```
 ---
+
 ### The role of `run.sh`
 The `run.sh` file performs the following functionalities :
 
@@ -137,6 +138,7 @@ Usage :
 Flags :
 
 **(Specific to test configuration)**
+
 ``` 
 --wait String
     duration for which the tests must wait for pods to come to a running state
@@ -174,6 +176,7 @@ Flags :
 Internally, the script builds a `go test` command by simply appending these values to it. The test configuration specific flags (such as `--wait`,`--enableTests`,`--workloadNamespace`, etc) are passed down to the test suite using the _flags_ go module. These values may be stored in variables (instance of objects, for e.g `TestOptions`) so that tests may run accordingly. A universal `TestHelper` object may also be used to make the flag management process easier.
 
 **(Essential `linkerd install` flags to accept)**
+
 - `--identity-trust-anchors-file` 
 -   `--identity-issuer-certificate-file`
 -  `--identity-issuer-key-file`
@@ -188,6 +191,7 @@ Internally, the script builds a `go test` command by simply appending these valu
 The script also builds a `linkerd install` command by simply appending these flags to it. The built command is then executed to install linkerd on the cluster.
 
 Sample Usage :
+
 ```bash
 ./run.sh --wait=30s \
     --enableTest="TestAutoProxyInjection/*" \
@@ -217,6 +221,7 @@ Once the test suite is complete (success / failure ) all resources created for t
 
 ---
 ### Testing Methodologies for various features
+
 The conformance test suite is intended to be run against an installation of Linkerd. Passing this test suite would give the user the assurance that a given configuration of Linkerd works (as expected) with a given version of Kubernetes and its cluster configuration.
 
 This section includes write ups regarding testing methodologies for some primary features:
@@ -303,6 +308,7 @@ $ kubectl get svc --all-namespaces \
 - Issue a curl cmd on the external IP to check if desired response is returned. This shall be done by wrapping the curl bash cmd as a method in Golang using `command.exec()`.
 
 **4. Data plane proxy health checks**
+
 - Issue a `check` command - `linkerd -n <ns> check --proxy -o json`
 - From the output JSON, under `"categoryName" : "linkerd-data-plane"`, verify if `result` of each check under the `checks` array shows `success`.
 - Make a `GET` request to the `linkerd-proxy` containers (of each of the pods) at the `/metrics` (Liveness probe) and `/ready` (Readiness probes) to ensure that they are reachable.
@@ -315,16 +321,19 @@ Some custom Kubernetes clusters don't always have the aggregation layer configur
 - Validate the returned JSON by ensuring that the array the check with description `"can read extension-apiserver-authentication configmap"` under category `"pre-kubernetes-setup"` says `"success"`
 
 **6. Retries and Timeouts**
+
 - Some of the code from the existing integration tests may be reused for this section. In particular, we're looking for `test/serviceprofiles/serviceprofiles_test.go`
 - After verifying if our _emojivoto_ deployments and services are up and running, a `linkerd routes` cmd shall be issued, and the returned routes are compared to the expected routes. We shall pick deployments that have an edge, For e.g - `web` and `voting`
 - Once the expected routes match the returned routes, a `linkerd profile` cmd must be issued to ensure that a `ServiceProfile` is generated for `web` and `voting`. To do this, we may use the `--tap` flag to generate a `ServiceProfile` based off live traffic data using `tap`. The output of this command shall be piped to `kubectl apply`, much like the `TestHelper.KubectlApply()` method in the integration tests.
 
 **Retries:**
+
 - Now, the tests execute `linkerd routes -n emojivoto deploy/web --to svc/voting-svc -o json` and note the value of `"effective_success"` for any of the routes. We may choose any route (or all routes) for this depending on the edge selected.
 - The code then proceeds to add an `isRetryable: true` field under the selected route(s) for `deploy/voting`. To do this, the `ServiceProfile` YAML is unmarshalled into a `ServiceProfile` object (from `controller/gen/apis/serviceprofile/v1alpha2/types.go`), and an `IsRetryable: true` field is appended to the `RouteSpec`. The object is then marshalled into a YAML and piped to `kubectl apply`.
 - Finally, from the previous `routes` cmd, the value for `"effective_success"` is obtained and verified if the present value is greater than before.
 
 **Timeouts:**
+
 - Testing for Timeouts shall work similar to Retries. The tests execute `linkerd routes -n emojivoto deploy/web --to svc/voting-svc -o json` and note the value of `"effective_success"` for any of the routes depending on the edge selected.
 - The `ServiceProfile` YAML for `deploy/voting` is unmarshalled into a `ServiceProfile` object and a `Timeout` value is set under `RouteSpec` (say, "25s"). The object is then marshalled and piped to `kubectl apply`
 - Finally, from the previous `routes` cmd, the value for `"effective_success"` is verified , i.e, if the present value is lesser than before.
@@ -350,7 +359,8 @@ The movie chat application / emojivoto shall leverage gRPC streaming. It is esse
 - To ensure that there is constant traffic between services that use gRPC, the tests shall issue a `linkerd stat -n <ns> <resource> -o json` cmd. 
 - To test this gRPC traffic, the tests shall validate the `success` field of the JSON output, which ideally should be 1.00 (or 100%).
 
-**Good to have:**  The logs gathered by Sonobuoy may also show metrics such as `rps` and the different latencies.
+**Good to have:**  
+The logs gathered by Sonobuoy may also show metrics such as `rps` and the different latencies.
 
 **2. Websockets**
 
@@ -364,6 +374,8 @@ $ curl --include --no-buffer \
 ```
 
 This command would return a response from the websocket server from the /socket endpoint where websockets shall be served.
+
+Further, similar to gRPC testing, `linkerd stat` shall be used to check if there is constant traffic to and from the websocket endpoints.
 
 **3. MySQL and Redis**
 
@@ -435,7 +447,6 @@ It is a non-goal for this project to provide an application that is expected to 
 
 # Prior art
 
-[prior-art]: #prior-art
 - Sample Sonobuoy plugins - https://github.com/vmware-tanzu/sonobuoy/tree/master/examples/plugins
 - K8s e2e tests - https://github.com/kubernetes/kubernetes/tree/master/test/e2e
 - K8s Sonobuoy image - https://github.com/kubernetes/kubernetes/tree/master/cluster/images/conformance
