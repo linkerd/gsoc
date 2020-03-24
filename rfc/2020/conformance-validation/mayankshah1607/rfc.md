@@ -16,15 +16,14 @@ This project proposes a new test suite that shall be used for conformance valida
 [problem-statement]: #problem-statement
 Linkerd has an extensive check suite that validates a cluster is ready to install Linkerd and that the installation was successful. These checks are, unfortunately, static checks. Because of the wide number of ways a Kubernetes cluster can be configured, users want a way to validate their specific install for conformance over time. The proposed project tackles this problem by allowing users to deploy sample workloads to their cluster and carry out extensive e2e (conformance) tests.
 
-# Goals
+# Goals and Deliverables
+
+## Goals
 The goal of this project is to :
 1. develop a sample application that can exercise various features of Linkerd, mainly that involve the data plane.
 2. provide an extensive e2e test suite that can make use of this application and validate for conformance.
 
-# Non-goals
-It is a non-goal for this project to provide an application that is expected to be a part of Linkerd application architecture (control / data plane). This project in no way shall directly affect the way Linkerd functions. Unlike the existing integration tests, the e2e tests for conformance in this project are not expected to be a part of the Linkerd CI workflow either. These tests shall run as a stand-alone component such that it can interact with a k8s cluster.
-
-# Deliverables
+## Deliverables
 
 ### Must have (shall be completed by end of GSoC):
 - An e2e test suite that can perform conformance validation for the following features:
@@ -47,6 +46,9 @@ It is a non-goal for this project to provide an application that is expected to 
     5. MySQL, Redis
    
 - A new sample application - MovieChat - that has all the features required from conformance validation perspective
+
+## Non-goals
+It is a non-goal for this project to provide an application that is expected to be a part of Linkerd application architecture (control / data plane). This project in no way shall directly affect the way Linkerd functions. Unlike the existing integration tests, the e2e tests for conformance in this project are not expected to be a part of the Linkerd CI workflow either. These tests shall run as a stand-alone component such that it can interact with a k8s cluster.
 
 
 # Design proposal
