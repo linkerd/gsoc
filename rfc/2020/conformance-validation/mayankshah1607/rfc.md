@@ -11,12 +11,45 @@
 [summary]: #summary
 This project proposes a new test suite that shall be used for conformance validation. The new test suite shall be used to validate non-trivial network communication (HTTP, gRPC, websocket) among stateless and stateful workloads in the Linkerd data plane. The correctness of the interaction between the Linkerd control plane and the Kubernetes API Server will also be tested. This shall be done by carrying out extensive e2e tests of Linkerd features using a sample distributed application (data plane).
 
-# Problem Statement (Step 1)
+# Problem Statement
 
 [problem-statement]: #problem-statement
-Linkerd has an extensive check suite that validates a cluster is ready to install Linkerd and that the installation was successful. These checks are, unfortunately, static checks. Because of the wide number of ways a Kubernetes cluster can be configured, users want a way to validate their specific install for conformance over time. The proposed project tackles this problem by allowing users to deploy sample workloads to their cluster and carry out extensive e2e (conformance) tests. 
+Linkerd has an extensive check suite that validates a cluster is ready to install Linkerd and that the installation was successful. These checks are, unfortunately, static checks. Because of the wide number of ways a Kubernetes cluster can be configured, users want a way to validate their specific install for conformance over time. The proposed project tackles this problem by allowing users to deploy sample workloads to their cluster and carry out extensive e2e (conformance) tests.
 
-# Design proposal (Step 2)
+# Goals
+The goal of this project is to :
+1. develop a sample application that can exercise various features of Linkerd, mainly that involve the data plane.
+2. provide an extensive e2e test suite that can make use of this application and validate for conformance.
+
+# Non-goals
+It is a non-goal for this project to provide an application that is expected to be a part of Linkerd application architecture (control / data plane). This project in no way shall directly affect the way Linkerd functions. Unlike the existing integration tests, the e2e tests for conformance in this project are not expected to be a part of the Linkerd CI workflow either. These tests shall run as a stand-alone component such that it can interact with a k8s cluster.
+
+# Deliverables
+
+### Must have (shall be completed by end of GSoC):
+- An e2e test suite that can perform conformance validation for the following features:
+    1. Automatic proxy injection
+    2. `linkerd tap`, `stat`, `routes`, `edges` cmd
+    3. Verifying if `tap` extenstion API server is functional
+    4. Retries and Timeouts
+    5. Verifying if Data Plane proxies are healthy
+    6. Ingress
+- A Sonobuoy plugin for our test suite
+
+- A sample emojivoto app with feature flags that can enable/disable features required for conformance vaidation.
+
+### Good-to-have (if extra time remains, these shall be worked on):
+- The conformance validation testing suite shall also cover the following features :
+    1. Telemetry and metrics
+    2. Cluster security and introspection
+    3. Data plane PSP
+    4. Distributed tracing
+    5. MySQL, Redis
+   
+- A new sample application - MovieChat - that has all the features required from conformance validation perspective
+
+
+# Design proposal
 
 [design-proposal]: #design-proposal
 
@@ -26,7 +59,7 @@ The e2e conformance tests proposed would be carried out outside the Linkerd CI. 
 We initially start off by modifying the existing emojivoto application to have feature flags to enable/disable features such as MySQL, Redis, gRPC, websockets, etc. This is important because emojivoto is heavily used in the getting started process.
 
 ## Implementation Details
-The proposed test framework shall be written using Go. Apart from managing outputs, the standard `testing` framework provides us features that our conformance test suite could leverage, for e.g - running tests in parallel, passing command line flags to make tests configurable, skipping tests, etc. Moreover, this shall also give us the flexibility to reuse existing code (packages, objects, etc.) from the _linkerd2_ codebase. It would then also be possible to use [kubernetes/client-go](https://github.com/kubernetes/client-go) to neatly write and manage code that can read from the cluster. 
+The proposed test framework shall be written using Go. Apart from managing outputs, the standard `testing` framework provides us features that our conformance test suite could leverage, for e.g - running tests in parallel, passing command line flags to make tests configurable, skipping tests, etc. Moreover, this shall also give us the flexibility to reuse existing code (packages, objects, etc.) from the [linkerd2](https://github.com/linkerd/linkerd2) codebase. It would then also be possible to use [kubernetes/client-go](https://github.com/kubernetes/client-go) to neatly write and manage code that can read from the cluster. 
 
 
 Additionally, we may use [Sonobuoy](https://sonobuoy.io/) as a wrapper around our test framework. Hence, this RFC proposes 2 ways to run the test framework.
@@ -167,13 +200,13 @@ Flags :
 --addon-config String
     Filepath to the addon config file. This flag must be used only in "default mode"
 
---addon-config-sonobuoy String
-    Filepath to the addon config file. This flag must be used only for Sonobuoy. The value of this command is passed to `kubectl cp` command to copy the addon config file to the Sonobuoy pod
+--clean
+    Always destroy resources created for testing, regardless of failure or success. If not set, resources are destroyed only if all the tests pass.
 
 --workloadNamespace String
     This could be a future possibility. The value of this flag identifies the namespace of the workloads against which the conformance tests must run.
 ```
-Internally, the script builds a `go test` command by simply appending these values to it. The test configuration specific flags (such as `--wait`,`--enableTests`,`--workloadNamespace`, etc) are passed down to the test suite using the _flags_ go module. These values may be stored in variables (instance of objects, for e.g `TestOptions`) so that tests may run accordingly. A universal `TestHelper` object may also be used to make the flag management process easier.
+Internally, the script executes a `go test` command by simply appending these values to it. The test configuration specific flags (such as `--wait`,`--enableTests`,`--workloadNamespace`, etc) are passed down to the test suite using the _flags_ go module. These values may be stored in variables (instance of objects, for e.g `TestOptions`) so that tests may run accordingly. A universal `TestHelper` object may also be used to make the flag management process easier.
 
 **(Essential `linkerd install` flags to accept)**
 
@@ -188,7 +221,7 @@ Internally, the script builds a `go test` command by simply appending these valu
 -  `--ha`
 -  `--addon-config`
 
-The script also builds a `linkerd install` command by simply appending these flags to it. The built command is then executed to install linkerd on the cluster.
+The script also executes a `linkerd install` command by simply appending these flags to it. The built command is then executed to install Linkerd on the cluster.
 
 Sample Usage :
 
@@ -216,10 +249,8 @@ Before the test suite is run, the following actions shall be carried out in sequ
 3. Check if connection to cluster can be established via `kubectl`
 4. Check if Linkerd control plane is installed
 5. Install the sample application
-
-Once the test suite is complete (success / failure ) all resources created for the test are destroyed if not immediately after each test.
-
 ---
+
 ### Testing Methodologies for various features
 
 The conformance test suite is intended to be run against an installation of Linkerd. Passing this test suite would give the user the assurance that a given configuration of Linkerd works (as expected) with a given version of Kubernetes and its cluster configuration.
@@ -239,8 +270,14 @@ Alternatively, as users may want to test for conformance on their own sample app
 - Check if uninject command updates the annotation to `linkerd.io/inject: disabled`
 - Wait for the pods to come to a _Running_ state for a certain duration, after which the test shall fail.
 - Ensure that the pods no longer have the `linkerd-init` and `linkerd-proxy` containers.
+  
+**2. `tap` extension API server**
 
-**2. Essential linkerd commands**
+Some custom Kubernetes clusters don't always have the aggregation layer configured, causing the tap service which is an extension API server to fail.
+- Issue a `check` command - `linkerd -n <ns> check --pre -o json`
+- Validate the returned JSON by ensuring that the array the check with description `"can read extension-apiserver-authentication configmap"` under category `"pre-kubernetes-setup"` says `"success"`
+
+**3. Essential linkerd commands**
 
 **linkerd tap cmd**
 
@@ -252,7 +289,7 @@ This test will work by issuing the `linkerd tap` cmd on various resources of the
 
 **linkerd stat**
 
-- Check if prometheus pod(s) is/are available
+- Check if Prometheus pod(s) is/are available
 - Check if controller pods are up and running
 - Check if the application pods are up and running
 - Issue stat cmd and validate output by checking for success rate and various latencies 
@@ -270,7 +307,7 @@ This test will work by issuing the `linkerd tap` cmd on various resources of the
 - Issue `linkerd routes` cmd
 - Validate the returned output by counting instances of desired route substrings using `strings.Count`
   
-**3. Ingress**
+**4. Ingress**
 
 It is essential to test ingress to ensure that the ingress controller re-writes incoming headers to the internal service name. This process ensures that service discovery is working. This test shall include deploying various types of ingress controllers (Nginx, Traefik and Ambassador) :
 
@@ -306,19 +343,14 @@ $ kubectl get svc --all-namespaces \
 > Note: The ingress resource file and the command to obtain the external IP may change according to the ingress controller being tested.
 
 - Issue a curl cmd on the external IP to check if desired response is returned. This shall be done by wrapping the curl bash cmd as a method in Golang using `command.exec()`.
+- On failure of this test suite, useful debugging information shall be displayed - such as the output of attempting to fetch an external IP, or the output of `cURL`. Further, users shall be allowed to not have these resources destroyed on test failure.
 
-**4. Data plane proxy health checks**
+**5. Data plane proxy health checks**
 
 - Issue a `check` command - `linkerd -n <ns> check --proxy -o json`
 - From the output JSON, under `"categoryName" : "linkerd-data-plane"`, verify if `result` of each check under the `checks` array shows `success`.
 - Make a `GET` request to the `linkerd-proxy` containers (of each of the pods) at the `/metrics` (Liveness probe) and `/ready` (Readiness probes) to ensure that they are reachable.
 - From the `linkerd-proxy` container of each of the pods, check for 503 errors.
-
-**5. `tap` extension API server**
-
-Some custom Kubernetes clusters don't always have the aggregation layer configured, causing the tap service which is an extension API server to fail.
-- Issue a `check` command - `linkerd -n <ns> check --pre -o json`
-- Validate the returned JSON by ensuring that the array the check with description `"can read extension-apiserver-authentication configmap"` under category `"pre-kubernetes-setup"` says `"success"`
 
 **6. Retries and Timeouts**
 
@@ -410,40 +442,7 @@ Similarly, any known corner cases related to the infrastructure of the cluster c
 
 ## Use Cases
 
-This standalone testing tool shall be used for verifying the features of Linkerd involving the data plane, as listed under the "Testing Methodologies for various features" section.
-
-## Goals
-The goal of this project is to :
-1. develop a sample application that can exercise various features of Linkerd, mainly that involve the data plane.
-2. provide an extensive e2e test suite that can make use of this application and validate for conformance.
-
-## Non-goals
-It is a non-goal for this project to provide an application that is expected to be a part of Linkerd application architecture (control / data plane). This project in no way shall directly affect the way Linkerd functions. Unlike the existing integration tests, the e2e tests for conformance in this project are not expected to be a part of the Linkerd CI workflow either. These tests shall run as a stand-alone component such that it can interact with a k8s cluster.
-
-## Deliverables
-
-### Must have (shall be completed by end of GSoC):
-- An e2e test suite that can perform conformance validation for the following features:
-    1. Automatic proxy injection
-    2. `linkerd tap`, `stat`, `routes`, `edges` cmd
-    3. Verifying if `tap` extenstion API server is functional
-    4. Retries and Timeouts
-    5. Verifying if Data Plane proxies are healthy
-    6. Ingress
-- A Sonobuoy plugin for our test suite
-
-- A sample emojivoto app with feature flags that can enable/disable features required for conformance vaidation.
-
-### Good-to-have (if extra time remains, these shall be worked on):
-- The conformance validation testing suite shall also cover the following features :
-    1. Telemetry and metrics
-    2. Cluster security and introspection
-    3. Data plane PSP
-    4. Distributed tracing
-    5. MySQL, Redis
-   
-- A new sample application - MovieChat - that has all the features required from conformance validation perspective
-
+The primary use cases of this project include the tests listed under the "Testing methodologies for various features" section.
 
 # Prior art
 
@@ -462,7 +461,7 @@ It is a non-goal for this project to provide an application that is expected to 
 [unresolved-questions]: #unresolved-questions
 
 1. Should we consider writing the test suite as well in shell? Currently, using golang would make it much easier to write a lot of the tests.
-2. Where would this project live? Should a separate repo be created for this, or is it okay to have this in the `linkerd2` repo?
+2. Where would this project live? Should a separate repo be created for this, or is it okay to have this in the [linkerd2](https://github.com/linkerd/linkerd2) repo?
 
 # Future possibilities
 
