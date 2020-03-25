@@ -8,12 +8,10 @@
 
 # Summary
 
-[summary]: #summary
 This project proposes a new test suite that shall be used for conformance validation. The new test suite shall be used to validate non-trivial network communication (HTTP, gRPC, websocket) among stateless and stateful workloads in the Linkerd data plane. The correctness of the interaction between the Linkerd control plane and the Kubernetes API Server will also be tested. This shall be done by carrying out extensive e2e tests of Linkerd features using a sample distributed application (data plane).
 
 # Problem Statement
 
-[problem-statement]: #problem-statement
 Linkerd has an extensive check suite that validates a cluster is ready to install Linkerd and that the installation was successful. These checks are, unfortunately, static checks. Because of the wide number of ways a Kubernetes cluster can be configured, users want a way to validate their specific install for conformance over time. The proposed project tackles this problem by allowing users to deploy sample workloads to their cluster and carry out extensive e2e (conformance) tests.
 
 # Goals and Deliverables
@@ -52,8 +50,6 @@ It is a non-goal for this project to provide an application that is expected to 
 
 
 # Design proposal
-
-[design-proposal]: #design-proposal
 
 ## Interaction with other features
 The e2e conformance tests proposed would be carried out outside the Linkerd CI. These tests would make use of the `kubectl` and `linkerd` binaries to interact with the cluster and with various features Linkerd can perform.
@@ -372,7 +368,9 @@ $ kubectl get svc --all-namespaces \
 - The `ServiceProfile` YAML for `deploy/voting` is unmarshalled into a `ServiceProfile` object and a `Timeout` value is set under `RouteSpec` (say, "25s"). The object is then marshalled and piped to `kubectl apply`
 - Finally, from the previous `routes` cmd, the value for `"effective_success"` is verified , i.e, if the present value is lesser than before.
 
-> Note: Additional routes to `voting` may have to be added to give valuable insights on Retries and Timeouts. For example, a route that takes longer than `X` seconds to respond. A timeout of `X` may then be configured to witness the drop in `"effective_success"`. 
+> Note: Additional routes to `voting` may have to be added to give valuable insights on Retries and Timeouts. For example, a route that takes longer than `X` seconds to respond. A timeout of `X` may then be configured to witness the drop in `"effective_success"`.
+
+In addition to this, it would also be nice to show the `EFFECTIVE_RPS`  and `ACTUAL_RPS` metrics from the output of `tap` as a way to observe the difference in the requests being sent by the client and the requests being recieved by the Linkerd proxy. This would allow the users to monitor the occurences of retries and timeouts.
 
 **7. Distributed Tracing (optional)**
 
@@ -460,14 +458,10 @@ The primary use cases of this project include the tests listed under the "Testin
 
 # Unresolved questions
 
-[unresolved-questions]: #unresolved-questions
-
 1. Should we consider writing the test suite as well in shell? Currently, using golang would make it much easier to write a lot of the tests.
 2. Where would this project live? Should a separate repo be created for this, or is it okay to have this in the [linkerd2](https://github.com/linkerd/linkerd2) repo?
 
 # Future possibilities
-
-[future-possibilities]: #future-possibilities
 
 As a Linkerd user, it is important to know that Linkerd works with my services, not just emojivoto. Setting the `workloadNamespace` flag while executing `./run.sh` gives the users this flexibility.
 - `config.linkerd.io/e2e: conformance` label is appended to the namespace config
