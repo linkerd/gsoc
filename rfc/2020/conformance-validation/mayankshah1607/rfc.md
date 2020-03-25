@@ -18,7 +18,9 @@ Linkerd has an extensive check suite that validates a cluster is ready to instal
 
 ## Goals
 The goal of this project is to :
+
 1. develop a sample application that can exercise various features of Linkerd, mainly that involve the data plane.
+   
 2. provide an extensive e2e test suite that can make use of this application and validate for conformance.
 
 ## Deliverables
@@ -33,7 +35,7 @@ The goal of this project is to :
     6. Ingress
 - A Sonobuoy plugin for our test suite
 
-- A sample emojivoto app with feature flags that can enable/disable features required for conformance vaidation.
+- A sample emojivoto app with feature flags that can enable/disable features required for conformance validation.
 
 ### Good-to-have (if extra time remains, these shall be worked on):
 - The conformance validation testing suite shall also cover the following features :
@@ -64,16 +66,18 @@ Additionally, we may use [Sonobuoy](https://sonobuoy.io/) as a wrapper around ou
 
 ### 1. Running the tests vanilla style (default mode)
 First let us look at how the test framework can run without having to depend on Sonobuoy. To do so, we provide 2 essential items as a part of the project :
+
 1. A `run.sh` file that accepts a list of flags (see use case and implementation details below) and calls `go test` accordingly.
+
 2. The test suite (the `_test.go` files)
 
-To run the test suite, users will be required to execute `./run.sh` with a bunch of flags (more details below). Further, the output of the tests shall be written to a filepath passed as a flag to `./run.sh`. By default, `stdout` shall be used to show output of the tests.
+To run the test suite, users will be required to execute `./run.sh` with a group of flags (more details below). Further, the output of the tests shall be written to a file path passed as a flag to `./run.sh`. By default, `stdout` shall be used to show output of the tests.
 
 > As a part of this default mode, users shall be allowed to run these tests in a container as well. We make use of the Dockerfile being introduced in the next section (Read below).
 
 ### 2. Using Sonobuoy
 
-Sonobuoy is a great tool when it comes to conformance validation. Its [plugin model](https://sonobuoy.io/docs/master/plugins/) can allow us to easily extend functionality beyond K8s conformance validation. Essentially, Sonobuoy runs your test suite in a pod in the cluster, hence, also saves developers the overhead of configuring the desired objects such as Namespaces, ServieAccounts, ClusterRoleBindings, Jobs, RBAC, etc.
+Sonobuoy is a great tool when it comes to conformance validation. Its [plugin model](https://sonobuoy.io/docs/master/plugins/) can allow us to easily extend functionality beyond K8s conformance validation. Essentially, Sonobuoy runs your test suite in a pod in the cluster, hence, also saves developers the overhead of configuring the desired objects such as Namespaces, ServiceAccounts, ClusterRoleBindings, Jobs, RBAC, etc.
 
 Now, for the ease of management of the project, we simply extend our default approach as described above, to provide a [sonobuoy plugin](https://sonobuoy.io/docs/master/plugins/). Hence, we require 2 new items :
 
@@ -102,7 +106,7 @@ $ docker run -it -v ~/.kube/config:~/.kube/config <user>/l5d-conformance [run.sh
 # Optional
 $ docker push <user>/l5d-conformance
 ```
-Additionally, we may provide a Makefile that runs these commands for the user. However, we may have to re-think the way they can pass `./run.sh` flags (One option could be to have them edit the Makefile according to their needs).
+Additionally, we may provide a Makefile that runs these commands for the user. However, we may have to rethink the way they can pass `./run.sh` flags (One option could be to have them edit the Makefile according to their needs).
 
 We may also host this Docker image on a public repository, for e.g - _gcr.io/linkerd.io/conformance:v1.0.0_. The Sonobuoy plugin file (see next step) may benefit from this.
 
@@ -159,7 +163,7 @@ mkdir results && tar -xf $outfile -C results
 ### The role of `run.sh`
 The `run.sh` file performs the following functionalities :
 
-#### 1. Build and issue a `go test` command
+#### 1. Execute `go test` command
 The executable `run.sh` file shall accept flags and build a `go test` cmd to make the tests configurable as well as set `linkerd install` options.
 
 Usage : 
@@ -242,11 +246,17 @@ Sample Usage :
 #### 2. Pre-flight checks
 
 Before the test suite is run, the following actions shall be carried out in sequence:
+
 1. Check if `kubectl` binary is available
+
 2. Check if `linkerd` binary is available
+
 3. Check if connection to cluster can be established via `kubectl`
+
 4. Check if Linkerd control plane is installed
+
 5. Install the sample application
+
 ---
 
 ### Testing Methodologies for various features
@@ -258,15 +268,23 @@ This section includes write ups regarding testing methodologies for some primary
 **1. Automatic Proxy Injection**
 
 Proxy injection process works by adding a `linkerd.io/inject: enabled` annotation to pod template / namespace. This triggers an admission webhook that injects the `linkerd-proxy` container to the targeted deployments. This process shall be tested in 7 steps:
+
 - Check if `inject` command (with and without `--manual` flag) outputs the desired configuration with the appended annotation. We shall provide an injected YAML file of the deployments which can be compared against the YAML blob output of inject.
 
 Alternatively, as users may want to test for conformance on their own sample applications (check "Future possibilities" section), we may have to make use of [kubernetes/client-go](https://github.com/kubernetes/client-go) to only check for the existence of the `linkerd.io/inject: enabled` annotation under the pod metadata.     
+
 - Wait for the pods to come to a _Running_ state for a certain duration, after which the test shall fail.
+
 - Check if the pods actually have the `linkerd-proxy` and the `linkerd-init` container
+
 - Check if the `linkerd-proxy` container is reachable by sending a `GET` request to liveness/readiness probe - to ensure service discovery is functional.
+
 - Check for any `SkipInject` errors in events
+
 - Check if uninject command updates the annotation to `linkerd.io/inject: disabled`
+
 - Wait for the pods to come to a _Running_ state for a certain duration, after which the test shall fail.
+
 - Ensure that the pods no longer have the `linkerd-init` and `linkerd-proxy` containers.
   
 **2. `tap` extension API server**
@@ -311,6 +329,7 @@ It is essential to test ingress to ensure that the ingress controller re-writes 
 
 - Deploy and verify if the ingress controller is up and running. The YAML for various ingress controllers shall be provided along with the test tool. 
 - Deploy the ingress resource. An example from the docs:
+  
 ```yaml
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -332,12 +351,15 @@ spec:
           serviceName: web-svc
           servicePort: 8080
 ```
+
 - Obtain external IP of the controller. For e.g :
+
 ```bash
 $ kubectl get svc --all-namespaces \
   -l app=nginx-ingress,component=controller \
   -o=custom-columns=EXTERNAL-IP:.status.loadBalancer.ingress[0].ip
 ```
+
 > Note: The ingress resource file and the command to obtain the external IP may change according to the ingress controller being tested.
 
 - Issue a curl cmd on the external IP to check if desired response is returned. This shall be done by wrapping the curl bash cmd as a method in Golang using `command.exec()`.
@@ -346,7 +368,7 @@ $ kubectl get svc --all-namespaces \
 **5. Data plane proxy health checks**
 
 - Issue a `check` command - `linkerd -n <ns> check --proxy -o json`
-- From the output JSON, under `"categoryName" : "linkerd-data-plane"`, verify if `result` of each check under the `checks` array shows `success`.
+- From the output JSON, under `"categoryName" : "linkerd-data-plane"`, verify if the `result` of each check under the `checks` array shows `success`.
 - Make a `GET` request to the `linkerd-proxy` containers (of each of the pods) at the `/metrics` (Liveness probe) and `/ready` (Readiness probes) to ensure that they are reachable.
 - From the `linkerd-proxy` container of each of the pods, check for 503 errors.
 
@@ -370,7 +392,7 @@ $ kubectl get svc --all-namespaces \
 
 > Note: Additional routes to `voting` may have to be added to give valuable insights on Retries and Timeouts. For example, a route that takes longer than `X` seconds to respond. A timeout of `X` may then be configured to witness the drop in `"effective_success"`.
 
-In addition to this, it would also be nice to show the `EFFECTIVE_RPS`  and `ACTUAL_RPS` metrics from the output of `tap` as a way to observe the difference in the requests being sent by the client and the requests being recieved by the Linkerd proxy. This would allow the users to monitor the occurences of retries and timeouts.
+In addition to this, it would also be nice to show the `EFFECTIVE_RPS`  and `ACTUAL_RPS` metrics from the output of `tap` as a way to observe the difference in the requests being sent by the client and the requests being received by the Linkerd proxy. This would allow the users to monitor the occurrences of retries and timeouts.
 
 **7. Distributed Tracing (optional)**
 
@@ -415,16 +437,12 @@ Further, similar to gRPC testing, `linkerd stat` shall be used to check if there
 - The `vote-bot` deployment may send constant traffic to `voting` which can be setup to simulate :
   - **cache hit** : If `voting` finds an emoji in Redis which has already been voted for earlier
   - **cache miss** : If `voting` cannot find the emoji in Redis, it fetches the record from MySQL and performs necessary updates.
-- Optionally, set in _conformance_config.yaml_ if the Redis and MySQL instances must be injected. If so, test the traffic between these instances using `linkerd stat`, similar to how gRPC traffic was tested.
-
 
 ## Corner Cases
 
 It is possible to have prior knowledge regarding which use cases may need to be configured differently depending on the environment. For E.g, tap requires extra RBAC configurations on GKE. Instead of having the corresponding tests for tap failing, users may be allowed to explicitly mention the environment these tests shall run on. The testing tool may show a warning, providing a link to the docs which provide instructions on how to setup GKE for Linkerd. This would have a positive impact on UX.
 
 Similarly, any known corner cases related to the infrastructure of the cluster can be documented.
-  
-> Note: Users may be allowed to mention such specifications in the test configuration file as mentioned above.
 
 ## Dependencies on tools / libraries
 
