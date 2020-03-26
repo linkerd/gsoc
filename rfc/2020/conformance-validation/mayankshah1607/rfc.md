@@ -390,9 +390,12 @@ $ kubectl get svc --all-namespaces \
 - The `ServiceProfile` YAML for `deploy/voting` is unmarshalled into a `ServiceProfile` object and a `Timeout` value is set under `RouteSpec` (say, "25s"). The object is then marshalled and piped to `kubectl apply`
 - Finally, from the previous `routes` cmd, the value for `"effective_success"` is verified , i.e, if the present value is lesser than before.
 
-> Note: Additional routes to `voting` may have to be added to give valuable insights on Retries and Timeouts. For example, a route that takes longer than `X` seconds to respond. A timeout of `X` may then be configured to witness the drop in `"effective_success"`.
+Additionally, we could show the `EFFECTIVE_RPS`  and `ACTUAL_RPS` metrics from the output of `tap` as a way to observe the difference in the requests being sent by the client and the requests being received by the Linkerd proxy.
 
-In addition to this, it would also be nice to show the `EFFECTIVE_RPS`  and `ACTUAL_RPS` metrics from the output of `tap` as a way to observe the difference in the requests being sent by the client and the requests being received by the Linkerd proxy. This would allow the users to monitor the occurrences of retries and timeouts.
+Further, following up with [this comment](https://github.com/linkerd/linkerd2/issues/2179#issuecomment-471643537) it would be nice to have `emojivoto` configured to monitor the occurenced of retries and timeouts. For example, a service or a set of services may be configured to have routes dedicated for testing retries and timeouts; a service that accepts a request with 3 parameters - `succeed-after-retries`, `id`, and `delay`. The service returns `200 OK` only after `succeed-after-retries`, and also keeps track of how many times the service was called before that. The service may also sleep for `delay` before servicing a request, as a way of validating timeouts.
+
+This way, users shall be allowed to monitor the occurences of retries and timeouts.  
+
 
 **7. Distributed Tracing (optional)**
 
