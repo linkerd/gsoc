@@ -35,7 +35,7 @@ There are 3 repositories need to change to support `arm`:
 
 ## Build Strategy
 
-### Option 1: Introduce ENV key
+### Strategy 1: Introduce ENV key
 Adding a new key to define what architecture the image will be build, and use that key for indicator when performing cross compilation.
 
 - `linkerd2-proxy-init`
@@ -166,7 +166,7 @@ Adding a new key to define what architecture the image will be build, and use th
     bin/docker-manifest $TAG
     ```
 
-### Option 2: Docker Buildx
+### Strategy 2: Docker Buildx
 Using the ... experimental feature of docker buildx will make things easier, but it comes also with some drawback.
 There are 3 strategies that we can do to build the image.
 
