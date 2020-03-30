@@ -33,7 +33,7 @@ There are 3 repositories need to change to support `arm`:
 2. [linkerd2-proxy](https://github.com/linkerd/linkerd2-proxy)
 3. [linkerd2](https://github.com/linkerd/linkerd2)
 
-## Build Strategy
+## Build & Publish Strategy
 
 ### Strategy 1: Introduce ENV key
 Adding a new key to define what architecture the image will be build, and use that key for indicator when performing cross compilation.
@@ -166,16 +166,45 @@ Adding a new key to define what architecture the image will be build, and use th
     bin/docker-manifest $TAG
     ```
 
+With all of step are explain, there is some drawback that we can see here as the we need to create manifest for multi-arch our self and every image architecture will have their own repositories.
+
 ### Strategy 2: Docker Buildx
-Using the ... experimental feature of docker buildx will make things easier, but it comes also with some drawback.
-There are 3 strategies that we can do to build the image.
+Using the latest experimental feature of docker buildx will make things easier, but as the nature of experimental features it may have problem in the future, and the DSL might also change.
+Another disadvantage is when performing multiple architecture build the resulting image is push automatically to registry, so it is not loaded on the local registry (`docker images`), it is not supported currently ([ref](https://github.com/docker/buildx/blob/master/README.md#docker)).
+
+There are 3 strategies that we can do to build the image using Buildx:
 
 1. QEMU
-- Advantage: There is no need to configure
+- Advantage: There is no need to configure or provision machine, it is just works.
+- Disadvantage: It may take long time to build.
 
 2. Remote Docker Machine with `arm` architecture
+- Advantage: Quick to build because it is native
+- Disadvantage: Provision & configure an ARM machine and setup as docker remote machine and maintain 2 docker machines as we already have 1 remote docker machine.
 
 3. Cross-compile
+- Advantage: We can use what we have now, no need setup a machine.
+- Disadvantage: none
+
+From this we can take a step to choose `cross-compile` options.
+
+As most of the step will be the same as in the previous strategy using ENV key, the part that different is how to run `docker build`.
+```sh
+# no need to use ENV key, list of build arguments will automatically available inside Dockerfile
+docker buildx build --platform linux/amd64,linux/arm64,linux/arm .
+```
+
+Inside Dockerfile
+```Dockerfile
+# builder image
+ARG TARGETARCH # automatically available
+ARG TARGETOS # automatically available
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build ...
+
+# runtime image
+ARG TARGETPLATFORM # automatically available
+FROM --platform=$TARGETPLATFORM ...
+```
 
 ## Test Strategy
 
