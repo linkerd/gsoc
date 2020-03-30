@@ -47,14 +47,15 @@ Adding a new key to define what architecture the image will be build, and use th
     ```
   - Define `push-all` instruction in Makefile to push the image & multi-arch manifest
     ```makefile
-    docker push gcr.io/linkerd-io/proxy-init-amd64:...
-    docker push gcr.io/linkerd-io/proxy-init-arm64:...
-    docker push gcr.io/linkerd-io/proxy-init-arm:...
+    docker push gcr.io/linkerd-io/proxy-init:...-amd64
+    docker push gcr.io/linkerd-io/proxy-init:...-arm64
+    docker push gcr.io/linkerd-io/proxy-init:...-arm
 
     docker manifest create gcr.io/linkerd-io/proxy-init:... \
-      gcr.io/linkerd-io/proxy-init-amd64:... \
-      gcr.io/linkerd-io/proxy-init-arm64:... \
-      gcr.io/linkerd-io/proxy-init-arm:...
+      gcr.io/linkerd-io/proxy-init:...-amd64 \
+      gcr.io/linkerd-io/proxy-init:...-arm64 \
+      gcr.io/linkerd-io/proxy-init:...-arm
+    docker manifest push gcr.io/linkerd-io/proxy-init:...
     ```
   - Use the `GOARCH` argument to perform cross compile in `Dockerfile`
     ```Dockerfile
@@ -114,20 +115,24 @@ Adding a new key to define what architecture the image will be build, and use th
   - Export `DOCKER_BUILD_ARCH` in `bin/_docker.sh` & append the architecture in the repo name
     ```sh
     export DOCKER_BUILD_ARCH="${DOCKER_BUILD_ARCH:-}"
+    ```
+  - Update `bin/_tag.sh` to append the architecture
+    ```sh
     .
     .
     .
-    docker_repo() {
-      .
-      .
-      .
-      if [ -n "${DOCKER_BUILD_ARCH:-}" ]; then
-        name="$name-$DOCKER_BUILD_ARCH"
+    head_root_tag() {
+      if clean_head ; then
+        tag=clean_head_root_tag
+      else
+        name=$(echo $USER | sed 's/[^[:alnum:].-]//g')
+        tag="dev-$(git_sha_head)-$name"
       fi
-      .
-      .
-      .
+      echo "$tag-$DOCKER_BUILD_ARCH"
     }
+    .
+    .
+    .
     ```
   - Pass the architecture argument to docker build in every `docker-build-*` file
     ```sh
@@ -147,9 +152,10 @@ Adding a new key to define what architecture the image will be build, and use th
     ```sh
     for img in cli-bin cni-plugin controller debug grafana proxy web ; do
       docker manifest create gcr.io/linkerd-io/$img:$tag \
-        gcr.io/linkerd-io/$img-amd64:$tag \
-        gcr.io/linkerd-io/$img-arm64:$tag \
-        gcr.io/linkerd-io/$img-arm:$tag
+        gcr.io/linkerd-io/$img:$tag-amd64 \
+        gcr.io/linkerd-io/$img:$tag-arm64 \
+        gcr.io/linkerd-io/$img:$tag-arm
+      docker manifest push gcr.io/linkerd-io/$img:$tag
     done
     ```
   - Update `.github/workflows/release.yml`
@@ -167,11 +173,11 @@ Adding a new key to define what architecture the image will be build, and use th
     bin/docker-manifest $TAG
     ```
 
-With all of step are explain, there is some drawback that we can see here as the we need to create manifest for multi-arch our self and every image architecture will have their own repositories.
+With all of the steps are explained, there is some drawback that we can see here as we need to create manifest for multi-arch our self.
 
 ### Strategy 2: Docker Buildx
-Using the latest experimental feature of docker buildx will make things easier, but as the nature of experimental features it may have problem in the future, and the DSL might also change.
-Another disadvantage is when performing multiple architecture build the resulting image is push automatically to registry, so it is not loaded on the local registry (`docker images`), it is not supported currently ([ref](https://github.com/docker/buildx/blob/master/README.md#docker)). Also the Github Actions Runner may not supporting the docker experimental features.
+Using the latest experimental feature of docker buildx will make things easier because it will build multi architecture, create manifest and also annotate automatically, but as the nature of experimental features it may have problem in the future, and the DSL might also change.
+Another disadvantage is when performing multiple architecture build the resulting image is push automatically to registry, so it is not loaded on the local registry (`docker images`), it is not supported currently ([ref](https://github.com/docker/buildx/blob/master/README.md#docker)).
 
 There are 3 strategies that we can do to build the image using Buildx:
 
