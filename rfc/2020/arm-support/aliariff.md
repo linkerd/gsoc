@@ -142,6 +142,7 @@ Adding a new key to define what architecture the image will be build, and use th
     ```Dockerfile
     FROM --platform=$GOARCH ...
     ```
+  - Adjust `bin/fetch-proxy` file to retrieve the correct architecture version
   - Add `bin/docker-manifest` file to create and push multi-arch manifest
     ```sh
     for img in cli-bin cni-plugin controller debug grafana proxy web ; do
