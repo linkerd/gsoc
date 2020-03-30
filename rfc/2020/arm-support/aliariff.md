@@ -170,7 +170,7 @@ With all of step are explain, there is some drawback that we can see here as the
 
 ### Strategy 2: Docker Buildx
 Using the latest experimental feature of docker buildx will make things easier, but as the nature of experimental features it may have problem in the future, and the DSL might also change.
-Another disadvantage is when performing multiple architecture build the resulting image is push automatically to registry, so it is not loaded on the local registry (`docker images`), it is not supported currently ([ref](https://github.com/docker/buildx/blob/master/README.md#docker)).
+Another disadvantage is when performing multiple architecture build the resulting image is push automatically to registry, so it is not loaded on the local registry (`docker images`), it is not supported currently ([ref](https://github.com/docker/buildx/blob/master/README.md#docker)). Also the Github Actions Runner may not supporting the docker experimental features.
 
 There are 3 strategies that we can do to build the image using Buildx:
 
@@ -207,6 +207,40 @@ FROM --platform=$TARGETPLATFORM ...
 ```
 
 ## Test Strategy
+
+For integration testing using `kind`, unfortunately still not supporting `arm` architecture ([ref](https://github.com/kubernetes-sigs/kind/issues/166)). So the only way to test the integration of `arm` build is on the cloud.
+
+- `linkerd2-proxy-init`
+  - Setup `kind` in the Github Actions Workflow
+  - Run test `integration_test/run_tests.sh` (only test `amd64`)
+
+- `linkerd2-proxy`
+
+  The only way to test `arm` build is to setup a remote docker machine with `arm` architecture.
+  - Setup & Connect to an `arm` architecture remote docker machine in `.github/workflows/rust.yml`
+  - Run build & test
+  ```yml
+  run: docker build -qf .github/actions/remote/Dockerfile . >image.ref
+  .
+  .
+  .
+  run: docker run --rm $(cat image.ref) test-integration
+  ```
+
+- `linkerd2`
+
+  Cloud provider that supporting `arm` architecture:
+  - [AWS](https://aws.amazon.com/ec2/instance-types/a1/)
+  - [Packet](https://www.packet.com/cloud/servers/c2-large-arm/)
+
+  That mentioned providers supporting `arm64`, no `arm` cloud provider found so far.
+
+  Steps:
+  - Setup the cluster in `.github/workflows/cloud_integration.yml`
+
+    AWS had EKS that we can setup more straight forward, but with Packet we need to setup the cluster ourself.
+
+  - Run the integration tests
 
 # Prior art
 
