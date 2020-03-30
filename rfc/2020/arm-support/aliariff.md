@@ -258,6 +258,10 @@ And also proof that Linkerd can be run on ARM [linkerd/linkerd2#1165](https://gi
 
 [unresolved-questions]: #unresolved-questions
 
+1. Should we consider to test `arm` on merge request (`fork`)?
+
 # Future possibilities
 
 [future-possibilities]: #future-possibilities
+
+- Add more architectures like `ppc64le`, `s390x` to match with what Kubernetes already supported.
